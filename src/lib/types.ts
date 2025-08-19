@@ -122,3 +122,39 @@ export interface TaskProgress {
     totalParticipants: number
   }
 }
+
+export interface FocusSession {
+  id: string
+  title: string
+  duration: number // minutes
+  startTime: Date
+  endTime?: Date
+  completed: boolean
+  category?: string
+  notes?: string
+}
+
+export interface Goal {
+  id: string
+  title: string
+  description?: string
+  target: number // in minutes
+  current: number // progress in minutes
+  deadline?: Date
+  category: 'daily' | 'weekly' | 'monthly' | 'custom'
+  isCompleted: boolean
+  createdAt: Date
+}
+
+export interface StickyNote {
+  id: string
+  title: string
+  content: string
+  color: string
+  position: { x: number; y: number }
+  size: { width: number; height: number }
+  createdAt: Date
+  updatedAt: Date
+  isPinned: boolean
+  tags?: string[]
+}

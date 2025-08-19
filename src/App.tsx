@@ -3,12 +3,8 @@ import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Timer } from '@/components/Timer'
-import { SubjectManagement } from '@/components/SubjectManagement'
 import { StatsOverview } from '@/components/StatsOverview'
 import { ProgressCharts } from '@/components/ProgressCharts'
-import { TargetProgress } from '@/components/TargetProgress'
-import { TargetNotifications } from '@/components/TargetNotifications'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
 import { QuotesBar } from '@/components/QuotesBar'
@@ -19,9 +15,11 @@ import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { DeviceIndicator } from '@/components/DeviceIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AchieveTab } from '@/components/AchieveTab'
+import { NotesTab } from '@/components/NotesTab'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
-import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
+import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
 import { useTouchGestures } from '@/hooks/useTouchGestures'
@@ -35,7 +33,9 @@ import {
   BookOpen, 
   Calendar as CalendarIcon,
   CheckSquare,
-  Lightbulb
+  Lightbulb,
+  Target,
+  StickyNote
 } from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
@@ -74,7 +74,9 @@ function AppContent() {
   const [achievements, setAchievements] = useKV<Achievement[]>('achievements', INITIAL_ACHIEVEMENTS)
   const [tasks, setTasks] = useKV<Task[]>('tasks', [])
   const [challenges, setChallenges] = useKV<Challenge[]>('challenges', [])
-  const [currentTab, setCurrentTab] = useState('timer')
+  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>('focus-sessions', [])
+  const [goals, setGoals] = useKV<Goal[]>('focus-goals', [])
+  const [currentTab, setCurrentTab] = useState('achieve')
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false)
@@ -103,10 +105,9 @@ function AppContent() {
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
       try {
-        const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
+        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'stats', 'achievements', 'inspiration']
         const currentIndex = tabs.indexOf(currentTab)
         if (currentIndex < tabs.length - 1) {
-          mobileFeedback.buttonPress()
           setCurrentTab(tabs[currentIndex + 1])
         }
       } catch (error) {
@@ -115,10 +116,9 @@ function AppContent() {
     },
     onSwipeRight: () => {
       try {
-        const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
+        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'stats', 'achievements', 'inspiration']
         const currentIndex = tabs.indexOf(currentTab)
         if (currentIndex > 0) {
-          mobileFeedback.buttonPress()
           setCurrentTab(tabs[currentIndex - 1])
         }
       } catch (error) {
@@ -175,7 +175,7 @@ function AppContent() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const tabParam = urlParams.get('tab')
-    if (tabParam && ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration'].includes(tabParam)) {
+    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'stats', 'achievements', 'inspiration'].includes(tabParam)) {
       setCurrentTab(tabParam)
     }
   }, [])
@@ -371,6 +371,11 @@ function AppContent() {
     toast.info('Study session cancelled')
   }
 
+  // Update achievements function
+  const handleUpdateAchievements = (newAchievements: Achievement[]) => {
+    setAchievements(newAchievements)
+  }
+
   // Task management functions
   const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
     const newTask: Task = {
@@ -521,13 +526,9 @@ function AppContent() {
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
             <TabsList className="grid w-full grid-cols-7 bg-white/10 backdrop-blur-sm">
-              <TabsTrigger value="timer" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <Clock size={16} />
-                <span className="text-xs">Timer</span>
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <BookOpen size={16} />
-                <span className="text-xs">Subjects</span>
+              <TabsTrigger value="achieve" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Target size={16} />
+                <span className="text-xs">Achieve</span>
               </TabsTrigger>
               <TabsTrigger value="tasks" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <CheckSquare size={16} />
@@ -536,6 +537,10 @@ function AppContent() {
               <TabsTrigger value="calendar" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <CalendarIcon size={16} />
                 <span className="text-xs">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <StickyNote size={16} />
+                <span className="text-xs">Notes</span>
               </TabsTrigger>
               <TabsTrigger value="stats" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <ChartBar size={16} />
@@ -552,43 +557,11 @@ function AppContent() {
             </TabsList>
           </div>
 
-          <TabsContent value="timer" className="space-y-4 m-0">
+          <TabsContent value="achieve" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-              <TargetNotifications 
-                subjects={subjects}
-                sessions={sessions}
-                onSelectSubject={setSelectedSubject}
-              />
-            </div>
-            
-            {!selectedSubject ? (
-              <div className="text-center py-8 bg-black/20 backdrop-blur-md rounded-lg border border-white/10">
-                <BookOpen size={48} className="mx-auto text-white/60 mb-4" />
-                <h3 className="font-medium mb-2 text-white">Select a Subject First</h3>
-                <p className="text-sm text-white/70 mb-4">
-                  Choose a subject from the Subjects tab to start studying
-                </p>
-              </div>
-            ) : (
-              <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-                <Timer
-                  subject={selectedSubject}
-                  onSessionComplete={handleSessionComplete}
-                  onSessionCancel={handleSessionCancel}
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="subjects" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-              <SubjectManagement
-                subjects={subjects}
-                selectedSubject={selectedSubject}
-                onAddSubject={handleAddSubject}
-                onDeleteSubject={handleDeleteSubject}
-                onUpdateSubject={handleUpdateSubject}
-                onSelectSubject={setSelectedSubject}
+              <AchieveTab 
+                achievements={achievements}
+                onUpdateAchievements={handleUpdateAchievements}
               />
             </div>
           </TabsContent>
@@ -619,10 +592,13 @@ function AppContent() {
             </div>
           </TabsContent>
 
-          <TabsContent value="stats" className="space-y-4 m-0">
+          <TabsContent value="notes" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-              <TargetProgress subjects={subjects} sessions={sessions} />
+              <NotesTab />
             </div>
+          </TabsContent>
+
+          <TabsContent value="stats" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
               <StatsOverview stats={stats} achievements={achievements} sessions={sessions} />
             </div>

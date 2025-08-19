@@ -2,188 +2,145 @@
 
 ## Core Purpose & Success
 
-**Mission Statement**: StudyPartner is a mobile-first study companion that helps students track study time, manage subjects, and visualize progress through comprehensive analytics including subject-specific performance tracking.
+**Mission Statement**: StudyPartner is a mobile-first study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with an integrated notes system.
 
 **Success Indicators**: 
-- Users consistently track study sessions across multiple subjects
-- Engagement with progress charts leads to improved study habits
-- Subject-specific insights help users identify strengths and areas for improvement
-- Achievement system motivates continued usage
+- Users consistently track focus sessions and achieve daily/weekly goals
+- Task completion rates improve through gamification and challenges
+- Notes system enhances knowledge retention and organization
+- Achievement system motivates continued usage and goal achievement
 
-**Experience Qualities**: Motivating, Insightful, Streamlined
+**Experience Qualities**: Motivating, Organized, Achievement-Focused
 
 ## Project Classification & Approach
 
 **Complexity Level**: Light Application (multiple features with persistent state management)
 
-**Primary User Activity**: Creating (study sessions) and Interacting (with analytics and progress visualization)
+**Primary User Activity**: Creating (focus sessions, notes) and Achieving (goals, tasks, milestones)
 
 ## Thought Process for Feature Selection
 
-**Core Problem Analysis**: Students need a simple way to track study time across different subjects while gaining insights into their learning patterns and progress toward goals.
+**Core Problem Analysis**: Students need a unified platform to focus on work, track achievements, manage tasks, and organize thoughts while staying motivated through goal-setting and progress visualization.
 
-**User Context**: Students use this app during study sessions on mobile devices, checking progress between study periods, and reviewing performance trends to optimize their study habits.
+**User Context**: Students use this app during focus sessions on mobile devices, checking progress between work periods, managing tasks, organizing notes, and reviewing achievements to maintain motivation.
 
 **Critical Path**: 
-1. Add subjects with goals → 2. Select subject and start timer → 3. Complete study sessions → 4. Review progress and insights
+1. Set goals and start focus sessions → 2. Complete tasks and take notes → 3. Track progress and unlock achievements
 
 **Key Moments**: 
-- Timer completion (achievement feeling)
-- Progress chart review (insight discovery)
-- Achievement unlocks (motivation boost)
+- Focus session completion (achievement feeling)
+- Goal milestone reached (satisfaction boost)
+- Task completion (productivity feeling)
+- Notes organization (knowledge retention)
 
 ## Essential Features
 
-### Core Timer Functionality
-- **What it does**: Tracks focused study time for selected subjects
-- **Why it matters**: Provides accurate measurement of actual study effort
-- **Success criteria**: Sessions save correctly and contribute to subject totals
+### Integrated Achieve Tab
+- **What it does**: Combines goal-setting, focus timer, and achievement tracking in one unified interface
+- **Why it matters**: Provides a clear focus on achievement and goal completion
+- **Success criteria**: Goals integrate with focus sessions, achievements unlock appropriately
 
-### Subject Management
-- **What it does**: Allows creation and management of study subjects with goals and color coding
-- **Why it matters**: Organizes study efforts and enables goal tracking
-- **Success criteria**: Subjects persist across sessions and integrate with timer
+### Focus Timer System
+- **What it does**: Tracks focused work time for any topic or subject with customizable session details
+- **Why it matters**: Provides structured work periods that contribute to goal achievement
+- **Success criteria**: Sessions save correctly and contribute to goal progress
 
-### Comprehensive Progress Analytics
-- **What it does**: Provides multiple chart views including subject-specific performance tracking
-- **Why it matters**: Transforms raw study data into actionable insights for optimization
-- **Success criteria**: Charts accurately reflect study patterns and help identify trends
+### Goal Management
+- **What it does**: Allows creation of daily, weekly, monthly, or custom goals with target minutes
+- **Why it matters**: Provides structured objectives and tracks progress toward achievement
+- **Success criteria**: Goals update automatically from focus sessions and provide clear progress feedback
 
-### Subject-Specific Target Tracking (New)
-- **What it does**: Allows users to set daily and weekly study targets for each subject, with progress tracking and smart notifications when falling behind goals
-- **Why it matters**: Provides structured goal-setting and accountability to improve study consistency and prevent procrastination
-- **Success criteria**: Target setting is intuitive, progress is accurately tracked, and notifications help users stay on track without being intrusive
+### Modern Sticky Notes System
+- **What it does**: Digital sticky note board with drag-and-drop functionality, color coding, and tagging
+- **Why it matters**: Enhances knowledge retention and provides visual organization of thoughts and ideas
+- **Success criteria**: Notes save positions, support rich organization, and provide intuitive interaction
+
+### Task Management & Challenges
+- **What it does**: Personal task tracking with collaborative challenges and gamification
+- **Why it matters**: Maintains productivity momentum and adds social motivation elements
+- **Success criteria**: Tasks integrate with progress tracking and challenges provide meaningful competition
 
 ### Achievement System
-- **What it does**: Rewards study milestones and consistency
-- **Why it matters**: Gamifies the study experience to maintain motivation
+- **What it does**: Rewards focus milestones, goal completion, and consistent usage
+- **Why it matters**: Gamifies the achievement experience to maintain long-term motivation
 - **Success criteria**: Achievements unlock appropriately and provide satisfying feedback
 
-### Data Persistence
-- **What it does**: Saves all study data using key-value storage
-- **Why it matters**: Preserves user progress and enables long-term tracking
-- **Success criteria**: Data persists between sessions and app restarts
-
-### Calendar & Event Planning (New)
-- **What it does**: Provides a modern calendar interface where users can create, view, and manage study-related events including study sessions, exams, deadlines, and reminders
-- **Why it matters**: Enables proactive study planning and helps users organize their academic schedule visually
-- **Success criteria**: Events save correctly, calendar navigation is smooth, and event creation is intuitive with proper categorization
+### Inspiration Gallery
+- **What it does**: Showcases historical figures and scientists with motivational content in multiple languages
+- **Why it matters**: Provides cultural inspiration and motivation from diverse role models
+- **Success criteria**: Content displays correctly with proper localization support
 
 ## Design Direction
 
 ### Visual Tone & Identity
-**Emotional Response**: Users should feel accomplished, motivated, and in control of their learning journey
+**Emotional Response**: Users should feel accomplished, focused, and inspired to achieve their goals
 
-**Design Personality**: Clean, modern, encouraging - balancing productivity focus with gentle motivation
+**Design Personality**: Modern, achievement-focused, organized - balancing productivity with motivation
 
-**Visual Metaphors**: Progress bars, growth charts, achievement badges - elements that represent advancement and success
+**Visual Metaphors**: Progress bars, achievement badges, sticky notes, focus indicators - elements representing organization and success
 
-**Simplicity Spectrum**: Minimal interface that highlights content and data while maintaining visual interest
+**Simplicity Spectrum**: Clean interface that highlights progress and achievements while maintaining visual appeal
 
 ### Color Strategy
-**Color Scheme Type**: Analogous with strategic accent colors
+**Color Scheme Type**: Dark theme with vibrant accents for motivation
 
-**Primary Color**: Deep blue (oklch(0.45 0.15 200)) - representing focus, trust, and academic pursuit
-**Secondary Colors**: Light gray-blue (oklch(0.85 0.02 220)) - supporting backgrounds and secondary actions
-**Accent Color**: Warm orange (oklch(0.70 0.15 50)) - highlighting achievements, progress, and positive actions
-**Color Psychology**: Blue promotes focus and calm study environments, orange provides energizing motivation
-**Foreground/Background Pairings**: 
-- Background (light blue-white) with dark text for maximum readability
-- Primary buttons use blue background with white text
-- Accent elements use orange with white text for strong contrast
+**Primary Color**: Deep space blue (oklch(0.6 0.2 250)) - representing focus and achievement
+**Secondary Colors**: Dark backgrounds (oklch(0.15 0.05 240)) - supporting focus and reducing eye strain
+**Accent Color**: Bright yellow (oklch(0.7 0.25 60)) - highlighting achievements and important actions
+**Color Psychology**: Dark theme promotes focus, bright accents provide motivation and achievement feedback
 
 ### Typography System
 **Font Pairing Strategy**: Single font family (Inter) with varied weights for hierarchy
 **Typographic Hierarchy**: Clear distinction between headers (600-700 weight), body text (400), and secondary text (muted)
-**Font Personality**: Modern, readable, approachable - suitable for extended study app usage
-**Typography Consistency**: Consistent sizing scale and spacing throughout interface
+**Font Personality**: Modern, readable, achievement-focused - suitable for extended productivity usage
 **Which fonts**: Inter - excellent for mobile interfaces with strong legibility
-**Legibility Check**: Inter provides excellent readability at small sizes crucial for mobile usage
 
 ### Visual Hierarchy & Layout
-**Attention Direction**: Tab-based navigation guides users through main functions, with data visualization as focal points
-**White Space Philosophy**: Generous spacing between elements to reduce cognitive load during study breaks
+**Attention Direction**: Tab-based navigation with focus on achievement, progress visualization as focal points
+**White Space Philosophy**: Generous spacing between elements to reduce cognitive load and enhance focus
 **Grid System**: Mobile-first responsive grid with consistent padding and component spacing
-**Content Density**: Balanced information display that provides insights without overwhelming users
-
-### Animations
-**Purposeful Meaning**: Subtle transitions that reinforce user actions and provide feedback
-**Hierarchy of Movement**: Progress indicators and achievement unlocks receive animation focus
-**Contextual Appropriateness**: Gentle, productivity-focused animations that don't distract from studying
+**Content Density**: Balanced information display that promotes achievement without overwhelming users
 
 ### UI Elements & Component Selection
 **Component Usage**: 
-- Cards for grouping related information
-- Tabs for main navigation (Timer, Subjects, Calendar, Stats, Achievements)
-- Dialogs for session completion, important notifications, and event creation
-- Charts (Recharts) for data visualization
-- Select dropdowns for subject selection in analytics and event creation
-- Calendar grid with date selection and event visualization
+- Cards for grouping achievement-related information
+- Tabs for main navigation (Achieve, Tasks, Calendar, Notes, Stats, Achievements, Inspiration)
+- Dialogs for goal creation and note editing
+- Progress bars for goal tracking
+- Drag-and-drop for notes organization
 
-**Component Customization**: Rounded corners (0.75rem radius) and custom color applications for subject-specific elements
-**Component States**: Clear hover and active states for interactive elements
-**Icon Selection**: Phosphor icons for consistency - Clock, BookOpen, Calendar, ChartBar, Trophy
-**Mobile Adaptation**: Touch-friendly sizing with minimum 44px touch targets
+**Component Customization**: Rounded corners (0.75rem radius) and glassmorphic effects for modern appeal
+**Icon Selection**: Phosphor icons - Target, Clock, CheckSquare, StickyNote, Trophy
+**Mobile Adaptation**: Touch-friendly sizing with intuitive gesture support
 
-### Accessibility & Readability
-**Contrast Goal**: WCAG AA compliance maintained throughout interface with careful attention to chart readability
+## New Features Implementation
 
-## Edge Cases & Problem Scenarios
+### Achieve Tab Integration
+1. **Unified Goal Interface**: Combined goal setting with focus timer in single tab
+2. **Real-time Progress**: Live goal progress updates during focus sessions
+3. **Achievement Integration**: Direct connection between goals and achievement unlocks
+4. **Session Customization**: Flexible focus sessions with categories and notes
 
-**Potential Obstacles**: 
-- Users forgetting to stop timers
-- Incomplete subject setup affecting analytics
-- Data loss during app updates
+### Modern Notes System
+1. **Sticky Note Board**: Visual board interface with realistic note positioning
+2. **Drag & Drop**: Intuitive note positioning with touch support
+3. **Color Coding**: Multiple note colors for visual organization
+4. **Tagging System**: Flexible tagging for note categorization and search
+5. **Search Functionality**: Quick note discovery through title and content search
+6. **Pin System**: Important notes can be pinned for priority visibility
 
-**Edge Case Handling**: 
-- Session cancellation with confirmation
-- Empty state guidance for new users
-- Graceful handling of missing data in charts
+### Enhanced Mobile Experience
+1. **Touch Gestures**: Swipe navigation between tabs
+2. **Haptic Feedback**: Achievement and completion feedback (removed test functionality)
+3. **PWA Support**: Full mobile app experience with offline capabilities
+4. **Responsive Design**: Optimized for mobile-first usage patterns
 
 ## Implementation Considerations
 
-**Scalability Needs**: Chart performance with large amounts of historical data
-**Testing Focus**: Data persistence accuracy and chart rendering on various screen sizes
-**Critical Questions**: How much historical data should be maintained for optimal performance?
-
-## Key Updates - Calendar & Event Planning
-
-The latest enhancement adds comprehensive study planning capabilities:
-
-1. **Modern Calendar Interface**: Clean monthly calendar view with intuitive navigation and date selection
-2. **Event Creation & Management**: Create study events, exams, deadlines, reminders, and breaks with customizable details
-3. **Subject Integration**: Link calendar events to specific subjects with automatic color coding
-4. **Event Types & Categorization**: Five distinct event types (study sessions, exams, deadlines, reminders, breaks) with appropriate icons and colors
-5. **Time Management**: Support for both all-day events and scheduled time slots with start/end times
-6. **Visual Event Indicators**: Color-coded dots and indicators on calendar dates showing scheduled events
-7. **Event Details View**: Comprehensive event information display when selecting dates
-8. **Quick Event Actions**: Easy event deletion and management from the calendar interface
-
-This feature transforms the app from reactive study tracking to proactive study planning, enabling users to schedule their academic activities and maintain better organization of their study schedule.
-
-## Previous Updates - Target Tracking & Notifications
-
-The latest enhancement adds comprehensive goal-setting and progress monitoring:
-
-1. **Daily/Weekly Target Setting**: Users can set specific minute targets for each subject on daily and weekly basis
-2. **Intelligent Progress Tracking**: Real-time calculation of progress percentages with smart detection of when users are falling behind
-3. **Smart Notifications**: Context-aware alerts that appear when users are significantly behind their targets, with appropriate timing (evening for daily, mid-week for weekly)
-4. **Target Progress Visualization**: Clear progress bars and indicators showing current progress against set targets
-5. **Quick Action Integration**: Direct links from notifications to start studying the relevant subject
-6. **Dismissible Alerts**: Users can dismiss notifications that reset appropriately to avoid spam
-
-These features transform passive tracking into active goal management, helping students maintain consistent study habits and achieve their learning objectives through structured accountability.
-
-## Previous Updates - Subject-Specific Progress Charts
-
-The app includes comprehensive subject-specific analytics:
-
-1. **Individual Subject Selection**: Dropdown to choose specific subjects for detailed analysis
-2. **Subject Weekly Progress**: Area charts showing study time trends for selected subjects
-3. **Subject Monthly Trends**: Long-term progress visualization for individual topics
-4. **Subject Comparison**: Side-by-side comparison of this week vs last week performance across all subjects
-5. **Performance Insights**: Detailed metrics including total time, weekly averages, and goal progress with visual progress bars
+**Scalability Needs**: Note positioning performance with large numbers of notes
+**Testing Focus**: Touch gesture accuracy and note persistence across sessions
+**Critical Questions**: How to balance feature richness with mobile performance?
 
 ## Reflection
 
-This approach uniquely combines simplicity with powerful analytics, goal management, and proactive planning, providing immediate value (timer) while building long-term engagement through insights, achievements, structured target tracking, and comprehensive calendar-based study organization. The combination of subject-specific charts, target notifications, and calendar planning creates a complete study management ecosystem that helps students track progress, maintain consistent habits, and plan their academic success systematically.
+This approach transforms the app from a simple study tracker into a comprehensive achievement platform that combines focused work sessions, goal management, task completion, and knowledge organization. The integration of the achieve tab creates a clear focus on accomplishment while the notes system adds essential organization capabilities. The result is a motivating, comprehensive productivity companion that helps users achieve their goals through structured focus and organized thinking.

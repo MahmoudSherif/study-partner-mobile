@@ -2,38 +2,68 @@
 
 export const hapticFeedback = {
   light: () => {
-    if ('vibrate' in navigator) {
+    if ('vibrate' in navigator && navigator.vibrate) {
       navigator.vibrate(50)
     }
   },
   
   medium: () => {
-    if ('vibrate' in navigator) {
+    if ('vibrate' in navigator && navigator.vibrate) {
       navigator.vibrate(100)
     }
   },
   
   heavy: () => {
-    if ('vibrate' in navigator) {
+    if ('vibrate' in navigator && navigator.vibrate) {
       navigator.vibrate(200)
     }
   },
   
   success: () => {
-    if ('vibrate' in navigator) {
+    if ('vibrate' in navigator && navigator.vibrate) {
       navigator.vibrate([100, 50, 100])
     }
   },
   
+  taskComplete: () => {
+    if ('vibrate' in navigator && navigator.vibrate) {
+      navigator.vibrate([150, 75, 150, 75, 250])
+    }
+  },
+  
+  challengeTaskComplete: () => {
+    if ('vibrate' in navigator && navigator.vibrate) {
+      navigator.vibrate([200, 50, 100, 50, 100, 50, 300])
+    }
+  },
+  
+  studySessionComplete: () => {
+    if ('vibrate' in navigator && navigator.vibrate) {
+      navigator.vibrate([300, 100, 200, 100, 400])
+    }
+  },
+  
+  achievement: () => {
+    if ('vibrate' in navigator && navigator.vibrate) {
+      navigator.vibrate([400, 100, 200, 100, 200, 100, 500])
+    }
+  },
+  
   error: () => {
-    if ('vibrate' in navigator) {
+    if ('vibrate' in navigator && navigator.vibrate) {
       navigator.vibrate([200, 100, 200, 100, 200])
     }
   },
   
   notification: () => {
-    if ('vibrate' in navigator) {
+    if ('vibrate' in navigator && navigator.vibrate) {
       navigator.vibrate([50, 50, 50])
+    }
+  },
+  
+  progressMilestone: () => {
+    if ('vibrate' in navigator && navigator.vibrate) {
+      navigator.vibrate([75, 25, 75, 25, 150])
     }
   }
 }
@@ -43,27 +73,62 @@ export const audioFeedback = {
   createTone: (frequency: number, duration: number, type: OscillatorType = 'sine') => {
     if (!('AudioContext' in window)) return
     
-    const audioContext = new AudioContext()
-    const oscillator = audioContext.createOscillator()
-    const gainNode = audioContext.createGain()
-    
-    oscillator.connect(gainNode)
-    gainNode.connect(audioContext.destination)
-    
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime)
-    oscillator.type = type
-    
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime)
-    gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01)
-    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration / 1000)
-    
-    oscillator.start(audioContext.currentTime)
-    oscillator.stop(audioContext.currentTime + duration / 1000)
+    try {
+      const audioContext = new AudioContext()
+      const oscillator = audioContext.createOscillator()
+      const gainNode = audioContext.createGain()
+      
+      oscillator.connect(gainNode)
+      gainNode.connect(audioContext.destination)
+      
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime)
+      oscillator.type = type
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime)
+      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01)
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration / 1000)
+      
+      oscillator.start(audioContext.currentTime)
+      oscillator.stop(audioContext.currentTime + duration / 1000)
+      
+      // Clean up after the tone finishes
+      setTimeout(() => {
+        try {
+          audioContext.close()
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+      }, duration + 100)
+    } catch (e) {
+      // Ignore audio errors in environments that don't support it
+    }
   },
   
   success: () => {
     audioFeedback.createTone(523.25, 200) // C5
     setTimeout(() => audioFeedback.createTone(659.25, 200), 100) // E5
+  },
+  
+  taskComplete: () => {
+    // Task completion sound - more rewarding
+    audioFeedback.createTone(440, 150) // A4
+    setTimeout(() => audioFeedback.createTone(554.37, 150), 75) // C#5
+    setTimeout(() => audioFeedback.createTone(659.25, 200), 150) // E5
+  },
+  
+  challengeTaskComplete: () => {
+    // Challenge task completion - even more rewarding
+    audioFeedback.createTone(523.25, 200) // C5
+    setTimeout(() => audioFeedback.createTone(659.25, 200), 100) // E5
+    setTimeout(() => audioFeedback.createTone(783.99, 200), 200) // G5
+    setTimeout(() => audioFeedback.createTone(1046.50, 300), 300) // C6
+  },
+  
+  studySessionComplete: () => {
+    // Study session completion - triumphant sound
+    audioFeedback.createTone(659.25, 300) // E5
+    setTimeout(() => audioFeedback.createTone(783.99, 300), 150) // G5
+    setTimeout(() => audioFeedback.createTone(1046.50, 400), 300) // C6
   },
   
   error: () => {
@@ -80,11 +145,17 @@ export const audioFeedback = {
   },
   
   celebration: () => {
-    // Play a celebration chord
+    // Play a celebration chord - for achievements
     audioFeedback.createTone(523.25, 400) // C5
     setTimeout(() => audioFeedback.createTone(659.25, 400), 50) // E5
     setTimeout(() => audioFeedback.createTone(783.99, 400), 100) // G5
     setTimeout(() => audioFeedback.createTone(1046.50, 600), 150) // C6
+  },
+  
+  progressMilestone: () => {
+    // Progress milestone sound
+    audioFeedback.createTone(587.33, 150) // D5
+    setTimeout(() => audioFeedback.createTone(659.25, 200), 75) // E5
   }
 }
 
@@ -96,13 +167,28 @@ export const mobileFeedback = {
   },
   
   taskComplete: () => {
-    hapticFeedback.success()
-    audioFeedback.success()
+    hapticFeedback.taskComplete()
+    audioFeedback.taskComplete()
+  },
+  
+  challengeTaskComplete: () => {
+    hapticFeedback.challengeTaskComplete()
+    audioFeedback.challengeTaskComplete()
+  },
+  
+  studySessionComplete: () => {
+    hapticFeedback.studySessionComplete()
+    audioFeedback.studySessionComplete()
   },
   
   achievement: () => {
-    hapticFeedback.heavy()
+    hapticFeedback.achievement()
     audioFeedback.celebration()
+  },
+  
+  progressMilestone: () => {
+    hapticFeedback.progressMilestone()
+    audioFeedback.progressMilestone()
   },
   
   error: () => {
@@ -113,6 +199,36 @@ export const mobileFeedback = {
   notification: () => {
     hapticFeedback.notification()
     audioFeedback.notification()
+  },
+  
+  // Test function to demonstrate all feedback types
+  test: () => {
+    console.log('Testing haptic feedback patterns...')
+    
+    setTimeout(() => {
+      console.log('Light tap')
+      hapticFeedback.light()
+    }, 500)
+    
+    setTimeout(() => {
+      console.log('Task completion')
+      mobileFeedback.taskComplete()
+    }, 1500)
+    
+    setTimeout(() => {
+      console.log('Challenge task completion')
+      mobileFeedback.challengeTaskComplete()
+    }, 3000)
+    
+    setTimeout(() => {
+      console.log('Study session complete')
+      mobileFeedback.studySessionComplete()
+    }, 5000)
+    
+    setTimeout(() => {
+      console.log('Achievement unlocked')
+      mobileFeedback.achievement()
+    }, 7000)
   }
 }
 
@@ -140,5 +256,90 @@ export function useFeedbackPreferences() {
     audioEnabled: getPreference('audio'),
     setHapticEnabled: (enabled: boolean) => setPreference('haptic', enabled),
     setAudioEnabled: (enabled: boolean) => setPreference('audio', enabled)
+  }
+}
+
+// Enhanced feedback functions with logging and preferences
+export const mobileFeedbackWithPreferences = {
+  buttonPress: () => {
+    console.log('🔘 Button press feedback triggered')
+    hapticFeedback.light()
+    audioFeedback.tick()
+  },
+  
+  taskComplete: () => {
+    console.log('✅ Task completion feedback triggered')
+    hapticFeedback.taskComplete()
+    audioFeedback.taskComplete()
+  },
+  
+  challengeTaskComplete: () => {
+    console.log('🏆 Challenge task completion feedback triggered')
+    hapticFeedback.challengeTaskComplete()
+    audioFeedback.challengeTaskComplete()
+  },
+  
+  studySessionComplete: () => {
+    console.log('📚 Study session completion feedback triggered')
+    hapticFeedback.studySessionComplete()
+    audioFeedback.studySessionComplete()
+  },
+  
+  achievement: () => {
+    console.log('🏅 Achievement feedback triggered')
+    hapticFeedback.achievement()
+    audioFeedback.celebration()
+  },
+  
+  progressMilestone: () => {
+    console.log('🎯 Progress milestone feedback triggered')
+    hapticFeedback.progressMilestone()
+    audioFeedback.progressMilestone()
+  },
+  
+  error: () => {
+    console.log('❌ Error feedback triggered')
+    hapticFeedback.error()
+    audioFeedback.error()
+  },
+  
+  notification: () => {
+    console.log('🔔 Notification feedback triggered')
+    hapticFeedback.notification()
+    audioFeedback.notification()
+  },
+  
+  // Test function to demonstrate all feedback types
+  test: () => {
+    console.log('🧪 Testing haptic feedback patterns...')
+    
+    setTimeout(() => {
+      console.log('1. Light tap')
+      hapticFeedback.light()
+    }, 500)
+    
+    setTimeout(() => {
+      console.log('2. Task completion')
+      mobileFeedback.taskComplete()
+    }, 1500)
+    
+    setTimeout(() => {
+      console.log('3. Challenge task completion')
+      mobileFeedback.challengeTaskComplete()
+    }, 3000)
+    
+    setTimeout(() => {
+      console.log('4. Study session complete')
+      mobileFeedback.studySessionComplete()
+    }, 5000)
+    
+    setTimeout(() => {
+      console.log('5. Achievement unlocked')
+      mobileFeedback.achievement()
+    }, 7000)
+    
+    setTimeout(() => {
+      console.log('✨ Haptic feedback test complete!')
+    }, 8000)
   }
 }

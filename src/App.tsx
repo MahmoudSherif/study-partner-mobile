@@ -18,6 +18,7 @@ import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { DeviceIndicator } from '@/components/DeviceIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
+import { HapticTestPanel } from '@/components/HapticTestPanel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -182,6 +183,45 @@ function App() {
 
   const taskProgress = calculateTaskProgress()
 
+  // Track previous progress for milestone detection
+  const [previousDailyProgress, setPreviousDailyProgress] = useState(0)
+  const [previousChallengeProgress, setPreviousChallengeProgress] = useState(0)
+
+  // Check for progress milestones and trigger haptic feedback
+  useEffect(() => {
+    const dailyPercentage = taskProgress.dailyTasks.percentage
+    const challengePercentage = taskProgress.challengeProgress?.percentage || 0
+
+    // Check daily task milestones (25%, 50%, 75%, 100%)
+    const dailyMilestones = [25, 50, 75, 100]
+    const reachedDailyMilestone = dailyMilestones.find(milestone => 
+      dailyPercentage >= milestone && previousDailyProgress < milestone
+    )
+
+    if (reachedDailyMilestone && dailyPercentage > 0) {
+      mobileFeedback.progressMilestone()
+      toast.success(`Daily Progress: ${reachedDailyMilestone}% complete! 🎯`, {
+        description: `${taskProgress.dailyTasks.completed}/${taskProgress.dailyTasks.total} tasks done today`,
+      })
+    }
+
+    // Check challenge milestones
+    const challengeMilestones = [25, 50, 75, 100]
+    const reachedChallengeMilestone = challengeMilestones.find(milestone => 
+      challengePercentage >= milestone && previousChallengeProgress < milestone
+    )
+
+    if (reachedChallengeMilestone && challengePercentage > 0 && taskProgress.challengeProgress) {
+      mobileFeedback.progressMilestone()
+      toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
+        description: `${taskProgress.challengeProgress.completedTasks}/${taskProgress.challengeProgress.totalTasks} tasks in ${taskProgress.challengeProgress.challengeTitle}`,
+      })
+    }
+
+    setPreviousDailyProgress(dailyPercentage)
+    setPreviousChallengeProgress(challengePercentage)
+  }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.percentage])
+
   useEffect(() => {
     const updatedAchievements = updateAchievements(achievements, stats, sessions)
     
@@ -193,6 +233,9 @@ function App() {
     if (newlyUnlocked.length > 0) {
       setAchievements(updatedAchievements)
       newlyUnlocked.forEach(achievement => {
+        // Trigger achievement haptic feedback
+        mobileFeedback.achievement()
+        
         toast.success(`Achievement Unlocked: ${achievement.title}`, {
           description: achievement.description,
           duration: 5000
@@ -262,6 +305,9 @@ function App() {
       )
     )
 
+    // Trigger haptic feedback for study session completion
+    mobileFeedback.studySessionComplete()
+
     setLastSessionDuration(Math.round(duration))
     setCompletionDialogOpen(true)
     
@@ -297,6 +343,9 @@ function App() {
     )
 
     if (!task.completed) {
+      // Trigger haptic feedback for task completion
+      mobileFeedback.taskComplete()
+      
       // Show celebration for completed task
       setCelebrationData({
         isOpen: true,
@@ -386,6 +435,9 @@ function App() {
     )
 
     if (!isCompleted) {
+      // Trigger special haptic feedback for challenge task completion
+      mobileFeedback.challengeTaskComplete()
+      
       // Show celebration for completed challenge task
       setCelebrationData({
         isOpen: true,
@@ -411,6 +463,9 @@ function App() {
         <header className="text-center py-6">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">StudyPartner</h1>
           <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
+          <div className="mt-3 flex justify-center">
+            <HapticTestPanel />
+          </div>
         </header>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">

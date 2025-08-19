@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Task, Challenge, Subject, TaskProgress } from '@/lib/types'
+import { mobileFeedback } from '@/lib/mobileFeedback'
 import { 
   Plus, 
   Check, 
@@ -94,6 +95,8 @@ export function TasksManagement({
       return
     }
 
+    mobileFeedback.buttonPress()
+    
     const task: Omit<Task, 'id' | 'createdAt'> = {
       title: newTask.title,
       description: newTask.description || undefined,
@@ -203,7 +206,10 @@ export function TasksManagement({
             <Button
               variant="outline"
               size="sm"
-              onClick={onSwitchProgressView}
+              onClick={() => {
+                mobileFeedback.buttonPress()
+                onSwitchProgressView()
+              }}
               className="bg-white/10 hover:bg-white/20 text-white border-white/20"
             >
               <Target size={16} className="mr-2" />
@@ -354,7 +360,10 @@ export function TasksManagement({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onToggleTask(task.id)}
+                      onClick={() => {
+                        mobileFeedback.buttonPress()
+                        onToggleTask(task.id)
+                      }}
                       className={`mt-1 p-1 h-6 w-6 rounded-full border-2 ${
                         task.completed 
                           ? 'bg-green-500 border-green-500 text-white' 

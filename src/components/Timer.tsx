@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { Play, Pause, Square, RotateCcw } from '@phosphor-icons/react'
 import { formatDuration } from '@/lib/utils'
 import { Subject } from '@/lib/types'
+import { mobileFeedback } from '@/lib/mobileFeedback'
 
 interface TimerProps {
   subject: Subject | null
@@ -46,15 +47,18 @@ export function Timer({ subject, onSessionComplete, onSessionCancel }: TimerProp
   }, [isRunning, timeLeft, initialTime, onSessionComplete])
 
   const handleStart = () => {
+    mobileFeedback.buttonPress()
     setIsRunning(true)
     setSessionStarted(true)
   }
 
   const handlePause = () => {
+    mobileFeedback.buttonPress()
     setIsRunning(false)
   }
 
   const handleStop = () => {
+    mobileFeedback.buttonPress()
     setIsRunning(false)
     setSessionStarted(false)
     const studiedTime = (initialTime - timeLeft) / 60 // Convert to minutes
@@ -67,6 +71,7 @@ export function Timer({ subject, onSessionComplete, onSessionCancel }: TimerProp
   }
 
   const handleReset = () => {
+    mobileFeedback.buttonPress()
     setIsRunning(false)
     setSessionStarted(false)
     setTimeLeft(initialTime)
@@ -163,6 +168,7 @@ export function Timer({ subject, onSessionComplete, onSessionCancel }: TimerProp
                   variant={timeLeft === preset.value ? "default" : "outline"}
                   size="sm"
                   onClick={() => {
+                    mobileFeedback.buttonPress()
                     setTimeLeft(preset.value)
                     setInitialTime(preset.value)
                   }}

@@ -11,6 +11,7 @@ import { TargetProgress } from '@/components/TargetProgress'
 import { TargetNotifications } from '@/components/TargetNotifications'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
+import { QuotesBar } from '@/components/QuotesBar'
 import { Subject, StudySession, Achievement } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -121,7 +122,7 @@ function App() {
   return (
     <div className="min-h-screen relative">
       <SpaceBackground />
-      <div className="relative z-10 container max-w-md mx-auto p-4 pb-20">
+      <div className="relative z-10 container max-w-md mx-auto p-4 pb-28">{/* Increased bottom padding for quotes bar */}
         <header className="text-center py-6">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">StudyPartner</h1>
           <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
@@ -209,6 +210,8 @@ function App() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <QuotesBar />
 
       <Dialog open={completionDialogOpen} onOpenChange={setCompletionDialogOpen}>
         <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white">

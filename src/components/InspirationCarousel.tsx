@@ -118,7 +118,7 @@ const inspirationalCharacters: Character[] = [
   // Islamic Golden Age Scholars (Men with photos/illustrations)
   {
     id: '8',
-    name: 'Ibn Sina (Avicenna)',
+    name: 'ابن سينا (Ibn Sina / Avicenna)',
     field: 'Medicine & Philosophy',
     achievements: [
       'Wrote "The Canon of Medicine"',
@@ -132,7 +132,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '9',
-    name: 'Al-Khwarizmi',
+    name: 'الخوارزمي (Al-Khwarizmi)',
     field: 'Mathematics & Astronomy',
     achievements: [
       'Founded algebra as a discipline',
@@ -146,7 +146,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '10',
-    name: 'Ibn Rushd (Averroes)',
+    name: 'ابن رشد (Ibn Rushd / Averroes)',
     field: 'Philosophy & Medicine',
     achievements: [
       'Commentated on Aristotle\'s works',
@@ -160,7 +160,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '11',
-    name: 'Al-Razi (Rhazes)',
+    name: 'الرازي (Al-Razi / Rhazes)',
     field: 'Medicine & Chemistry',
     achievements: [
       'Distinguished smallpox from measles',
@@ -174,7 +174,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '12',
-    name: 'Ibn Khaldun',
+    name: 'ابن خلدون (Ibn Khaldun)',
     field: 'History & Sociology',
     achievements: [
       'Founded sociology as a science',
@@ -188,7 +188,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '13',
-    name: 'Al-Battani',
+    name: 'البتاني (Al-Battani)',
     field: 'Astronomy & Mathematics',
     achievements: [
       'Corrected Ptolemy\'s astronomical data',
@@ -202,7 +202,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '14',
-    name: 'Ibn al-Haytham (Alhazen)',
+    name: 'ابن الهيثم (Ibn al-Haytham / Alhazen)',
     field: 'Optics & Scientific Method',
     achievements: [
       'Father of the scientific method',
@@ -314,7 +314,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '22',
-    name: 'Fatima al-Fihri',
+    name: 'فاطمة الفهرية (Fatima al-Fihri)',
     field: 'Education & Learning',
     achievements: [
       'Founded the University of Al Quaraouiyine',
@@ -342,7 +342,7 @@ const inspirationalCharacters: Character[] = [
   // Additional Islamic Scholars (Men with historical illustrations)
   {
     id: '24',
-    name: 'Al-Jazari',
+    name: 'الجزري (Al-Jazari)',
     field: 'Engineering & Invention',
     achievements: [
       'Created sophisticated mechanical devices',
@@ -356,7 +356,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '25',
-    name: 'Ibn Battuta',
+    name: 'ابن بطوطة (Ibn Battuta)',
     field: 'Geography & Travel',
     achievements: [
       'Traveled over 75,000 miles',
@@ -370,7 +370,7 @@ const inspirationalCharacters: Character[] = [
   },
   {
     id: '26',
-    name: 'Omar Khayyam',
+    name: 'عمر الخيام (Omar Khayyam)',
     field: 'Mathematics & Poetry',
     achievements: [
       'Advanced algebra and geometry',

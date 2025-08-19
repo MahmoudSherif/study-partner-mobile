@@ -20,11 +20,18 @@ A mobile-first study companion application that helps students organize their le
 - **Success criteria**: Timer runs accurately, notifications work, session data persists
 
 ### Progress Tracking Dashboard
-- **Functionality**: Visual charts showing daily/weekly study time and subject breakdown
-- **Purpose**: Provides motivation through visible progress and helps identify study patterns
+- **Functionality**: Visual charts showing daily/weekly/monthly study time, session counts, and detailed pattern analysis
+- **Purpose**: Provides motivation through visible progress and helps identify study patterns and optimal times
 - **Trigger**: Automatically updates after each completed study session
-- **Progression**: Complete study session → Data automatically logged → View updated charts and statistics
-- **Success criteria**: Data visualizes correctly, trends are clear, historical data persists
+- **Progression**: Complete study session → Data automatically logged → View updated charts and statistics across multiple time ranges
+- **Success criteria**: Data visualizes correctly, trends are clear, historical data persists, multiple chart views are responsive
+
+### Weekly and Monthly Progress Charts
+- **Functionality**: Interactive charts displaying study patterns over time with weekly, monthly, and daily breakdowns
+- **Purpose**: Enables users to identify long-term trends, consistency patterns, and optimize study schedules
+- **Trigger**: Access from enhanced stats tab with chart navigation
+- **Progression**: Navigate to stats → Select chart timeframe → Analyze patterns → Adjust study habits based on insights
+- **Success criteria**: Charts render smoothly on mobile, data aggregates correctly, meaningful insights are visible
 
 ### Subject Management
 - **Functionality**: Add, edit, and organize different study subjects with color coding
@@ -79,9 +86,9 @@ Animations should feel purposeful and snappy like iOS system animations - quick 
 - **Hierarchy of Movement**: Timer gets primary animation focus, followed by progress indicators, then navigation transitions
 
 ## Component Selection
-- **Components**: Cards for study sessions and stats, Tabs for main navigation, Progress bars for visual feedback, Dialog for session completion, Button variants for different action types
-- **Customizations**: Custom timer component with circular progress, achievement badge components, subject color picker
-- **States**: Timer buttons show clear play/pause states, progress elements animate smoothly, disabled states for completed sessions
-- **Icon Selection**: Play/Pause for timer, Trophy for achievements, BarChart for stats, Book for subjects, Clock for time tracking
-- **Spacing**: Consistent 4/8/16/24px spacing scale optimized for touch targets and mobile readability
-- **Mobile**: Bottom tab navigation, swipe gestures for timer controls, thumb-friendly button placement, collapsible sections for detailed stats
+- **Components**: Cards for study sessions and stats, Tabs for main navigation and chart timeframes, Progress bars for visual feedback, Dialog for session completion, Button variants for different action types, Charts (Area, Bar, Line) for progress visualization
+- **Customizations**: Custom timer component with circular progress, achievement badge components, subject color picker, responsive chart components with mobile-optimized touch interactions
+- **States**: Timer buttons show clear play/pause states, progress elements animate smoothly, disabled states for completed sessions, chart loading states with smooth transitions
+- **Icon Selection**: Play/Pause for timer, Trophy for achievements, BarChart for stats, Book for subjects, Clock for time tracking, Calendar for weekly view, TrendingUp for monthly trends
+- **Spacing**: Consistent 4/8/16/24px spacing scale optimized for touch targets and mobile readability, chart containers with appropriate padding for mobile viewing
+- **Mobile**: Bottom tab navigation, swipe gestures for timer controls, thumb-friendly button placement, collapsible sections for detailed stats, horizontally scrollable charts for better mobile experience

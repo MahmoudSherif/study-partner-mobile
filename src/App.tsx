@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Timer } from '@/components/Timer'
 import { SubjectManagement } from '@/components/SubjectManagement'
 import { StatsOverview } from '@/components/StatsOverview'
+import { ProgressCharts } from '@/components/ProgressCharts'
 import { Achievements } from '@/components/Achievements'
 import { Subject, StudySession, Achievement } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
@@ -158,7 +159,8 @@ function App() {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4 m-0">
-            <StatsOverview stats={stats} achievements={achievements} />
+            <StatsOverview stats={stats} achievements={achievements} sessions={sessions} />
+            <ProgressCharts sessions={sessions} subjects={subjects} />
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-4 m-0">

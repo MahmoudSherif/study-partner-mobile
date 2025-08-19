@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Achievement, Subject, StudySession, UserStats } from './types'
 import { INITIAL_ACHIEVEMENTS } from './constants'
+import { calculateStudyStreak } from './chartUtils'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -11,27 +12,8 @@ export function calculateUserStats(sessions: StudySession[]): UserStats {
   const completedSessions = sessions.filter(s => s.completed)
   const totalTime = completedSessions.reduce((total, session) => total + session.duration, 0)
   
-  // Calculate streak
-  const today = new Date()
-  const sortedSessions = [...completedSessions].sort((a, b) => 
-    new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-  )
-  
-  let streak = 0
-  let currentDate = new Date(today)
-  currentDate.setHours(0, 0, 0, 0)
-  
-  for (const session of sortedSessions) {
-    const sessionDate = new Date(session.startTime)
-    sessionDate.setHours(0, 0, 0, 0)
-    
-    if (sessionDate.getTime() === currentDate.getTime()) {
-      streak++
-      currentDate.setDate(currentDate.getDate() - 1)
-    } else if (sessionDate.getTime() < currentDate.getTime()) {
-      break
-    }
-  }
+  // Use the improved streak calculation from chartUtils
+  const streak = calculateStudyStreak(sessions)
 
   return {
     totalStudyTime: totalTime,

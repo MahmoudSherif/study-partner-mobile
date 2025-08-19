@@ -1,18 +1,32 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Target, Clock, Flame } from '@phosphor-icons/react'
-import { UserStats, Achievement } from '@/lib/types'
+import { Trophy, Target, Clock, Flame, Calendar, TrendingUp } from '@phosphor-icons/react'
+import { UserStats, Achievement, StudySession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
+import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
 
 interface StatsOverviewProps {
   stats: UserStats
   achievements: Achievement[]
+  sessions?: StudySession[]
 }
 
-export function StatsOverview({ stats, achievements }: StatsOverviewProps) {
+export function StatsOverview({ stats, achievements, sessions = [] }: StatsOverviewProps) {
   const unlockedAchievements = achievements.filter(a => a.unlocked)
   const nextAchievement = achievements.find(a => !a.unlocked && a.progress > 0)
+  
+  // Calculate weekly progress
+  const weeklyData = getWeeklyData(sessions)
+  const thisWeekMinutes = weeklyData[weeklyData.length - 1]?.minutes || 0
+  const lastWeekMinutes = weeklyData[weeklyData.length - 2]?.minutes || 0
+  const weeklyProgress = lastWeekMinutes > 0 ? ((thisWeekMinutes - lastWeekMinutes) / lastWeekMinutes) * 100 : 0
+  
+  // Get best study time
+  const bestTime = getBestStudyTime(sessions)
+  const bestTimeString = bestTime.sessions > 0 ? 
+    `${bestTime.hour === 0 ? 12 : bestTime.hour > 12 ? bestTime.hour - 12 : bestTime.hour}${bestTime.hour >= 12 ? 'PM' : 'AM'}` 
+    : 'N/A'
 
   return (
     <div className="space-y-4">
@@ -46,6 +60,35 @@ export function StatsOverview({ stats, achievements }: StatsOverviewProps) {
             <Trophy size={24} className="mx-auto text-accent mb-2" />
             <div className="text-2xl font-bold">{unlockedAchievements.length}</div>
             <div className="text-sm text-muted-foreground">Achievements</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Weekly Progress and Best Time */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <Calendar size={24} className="mx-auto text-primary mb-2" />
+            <div className="text-2xl font-bold">{formatTime(thisWeekMinutes)}</div>
+            <div className="text-sm text-muted-foreground">This Week</div>
+            {weeklyProgress !== 0 && (
+              <div className={`text-xs mt-1 ${weeklyProgress > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {weeklyProgress > 0 ? '+' : ''}{Math.round(weeklyProgress)}% vs last week
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <TrendingUp size={24} className="mx-auto text-accent mb-2" />
+            <div className="text-2xl font-bold">{bestTimeString}</div>
+            <div className="text-sm text-muted-foreground">Best Study Time</div>
+            {bestTime.sessions > 0 && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {bestTime.sessions} sessions at this hour
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

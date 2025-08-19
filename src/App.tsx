@@ -12,10 +12,11 @@ import { TargetNotifications } from '@/components/TargetNotifications'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
 import { QuotesBar } from '@/components/QuotesBar'
+import { Calendar } from '@/components/Calendar'
 import { Subject, StudySession, Achievement } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
-import { Clock, ChartBar, Trophy, BookOpen } from '@phosphor-icons/react'
+import { Clock, ChartBar, Trophy, BookOpen, Calendar as CalendarIcon } from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
 function App() {
@@ -130,21 +131,25 @@ function App() {
 
         <Tabs defaultValue="timer" className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
-            <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm">
               <TabsTrigger value="timer" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                <Clock size={20} />
+                <Clock size={18} />
                 <span className="text-xs">Timer</span>
               </TabsTrigger>
               <TabsTrigger value="subjects" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                <BookOpen size={20} />
+                <BookOpen size={18} />
                 <span className="text-xs">Subjects</span>
               </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <CalendarIcon size={18} />
+                <span className="text-xs">Calendar</span>
+              </TabsTrigger>
               <TabsTrigger value="stats" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                <ChartBar size={20} />
+                <ChartBar size={18} />
                 <span className="text-xs">Stats</span>
               </TabsTrigger>
               <TabsTrigger value="achievements" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-                <Trophy size={20} />
+                <Trophy size={18} />
                 <span className="text-xs">Awards</span>
               </TabsTrigger>
             </TabsList>
@@ -188,6 +193,12 @@ function App() {
                 onUpdateSubject={handleUpdateSubject}
                 onSelectSubject={setSelectedSubject}
               />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calendar" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <Calendar subjects={subjects} />
             </div>
           </TabsContent>
 

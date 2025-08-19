@@ -57,3 +57,16 @@ export interface TargetNotification {
   severity: 'warning' | 'danger'
   timestamp: Date
 }
+
+export interface CalendarEvent {
+  id: string
+  title: string
+  description?: string
+  date: Date
+  startTime?: string
+  endTime?: string
+  subjectId?: string
+  type: 'study' | 'exam' | 'deadline' | 'reminder' | 'break'
+  isAllDay: boolean
+  color?: string
+}

@@ -64,6 +64,11 @@
 - **Why it matters**: Preserves user progress and enables long-term tracking
 - **Success criteria**: Data persists between sessions and app restarts
 
+### Calendar & Event Planning (New)
+- **What it does**: Provides a modern calendar interface where users can create, view, and manage study-related events including study sessions, exams, deadlines, and reminders
+- **Why it matters**: Enables proactive study planning and helps users organize their academic schedule visually
+- **Success criteria**: Events save correctly, calendar navigation is smooth, and event creation is intuitive with proper categorization
+
 ## Design Direction
 
 ### Visual Tone & Identity
@@ -109,14 +114,15 @@
 ### UI Elements & Component Selection
 **Component Usage**: 
 - Cards for grouping related information
-- Tabs for main navigation
-- Dialogs for session completion and important notifications
+- Tabs for main navigation (Timer, Subjects, Calendar, Stats, Achievements)
+- Dialogs for session completion, important notifications, and event creation
 - Charts (Recharts) for data visualization
-- Select dropdowns for subject selection in analytics
+- Select dropdowns for subject selection in analytics and event creation
+- Calendar grid with date selection and event visualization
 
 **Component Customization**: Rounded corners (0.75rem radius) and custom color applications for subject-specific elements
 **Component States**: Clear hover and active states for interactive elements
-**Icon Selection**: Phosphor icons for consistency - Clock, BookOpen, ChartBar, Trophy
+**Icon Selection**: Phosphor icons for consistency - Clock, BookOpen, Calendar, ChartBar, Trophy
 **Mobile Adaptation**: Touch-friendly sizing with minimum 44px touch targets
 
 ### Accessibility & Readability
@@ -140,7 +146,22 @@
 **Testing Focus**: Data persistence accuracy and chart rendering on various screen sizes
 **Critical Questions**: How much historical data should be maintained for optimal performance?
 
-## Key Updates - Target Tracking & Notifications
+## Key Updates - Calendar & Event Planning
+
+The latest enhancement adds comprehensive study planning capabilities:
+
+1. **Modern Calendar Interface**: Clean monthly calendar view with intuitive navigation and date selection
+2. **Event Creation & Management**: Create study events, exams, deadlines, reminders, and breaks with customizable details
+3. **Subject Integration**: Link calendar events to specific subjects with automatic color coding
+4. **Event Types & Categorization**: Five distinct event types (study sessions, exams, deadlines, reminders, breaks) with appropriate icons and colors
+5. **Time Management**: Support for both all-day events and scheduled time slots with start/end times
+6. **Visual Event Indicators**: Color-coded dots and indicators on calendar dates showing scheduled events
+7. **Event Details View**: Comprehensive event information display when selecting dates
+8. **Quick Event Actions**: Easy event deletion and management from the calendar interface
+
+This feature transforms the app from reactive study tracking to proactive study planning, enabling users to schedule their academic activities and maintain better organization of their study schedule.
+
+## Previous Updates - Target Tracking & Notifications
 
 The latest enhancement adds comprehensive goal-setting and progress monitoring:
 
@@ -165,4 +186,4 @@ The app includes comprehensive subject-specific analytics:
 
 ## Reflection
 
-This approach uniquely combines simplicity with powerful analytics and goal management, providing immediate value (timer) while building long-term engagement through insights, achievements, and structured target tracking. The combination of subject-specific charts and target notifications creates a comprehensive study management system that helps students both track their progress and maintain consistent study habits through intelligent accountability features.
+This approach uniquely combines simplicity with powerful analytics, goal management, and proactive planning, providing immediate value (timer) while building long-term engagement through insights, achievements, structured target tracking, and comprehensive calendar-based study organization. The combination of subject-specific charts, target notifications, and calendar planning creates a complete study management ecosystem that helps students track progress, maintain consistent habits, and plan their academic success systematically.

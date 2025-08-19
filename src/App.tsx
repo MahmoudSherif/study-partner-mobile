@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Timer } from '@/components/Timer'
 import { SubjectManagement } from '@/components/SubjectManagement'
@@ -18,6 +18,7 @@ import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { DeviceIndicator } from '@/components/DeviceIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
@@ -39,6 +40,35 @@ import {
 import { toast, Toaster } from 'sonner'
 
 function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
+  )
+}
+
+function AppContent() {
+  // Global error handling
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error caught:', event.error)
+      toast.error('An unexpected error occurred. Please refresh if issues persist.')
+    }
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason)
+      toast.error('A background operation failed. Please try again.')
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    }
+  }, [])
+
   const [subjects, setSubjects] = useKV<Subject[]>('study-subjects', [])
   const [sessions, setSessions] = useKV<StudySession[]>('study-sessions', [])
   const [achievements, setAchievements] = useKV<Achievement[]>('achievements', INITIAL_ACHIEVEMENTS)
@@ -72,19 +102,27 @@ function App() {
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
-      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
-      const currentIndex = tabs.indexOf(currentTab)
-      if (currentIndex < tabs.length - 1) {
-        mobileFeedback.buttonPress()
-        setCurrentTab(tabs[currentIndex + 1])
+      try {
+        const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
+        const currentIndex = tabs.indexOf(currentTab)
+        if (currentIndex < tabs.length - 1) {
+          mobileFeedback.buttonPress()
+          setCurrentTab(tabs[currentIndex + 1])
+        }
+      } catch (error) {
+        console.debug('Swipe left error:', error)
       }
     },
     onSwipeRight: () => {
-      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
-      const currentIndex = tabs.indexOf(currentTab)
-      if (currentIndex > 0) {
-        mobileFeedback.buttonPress()
-        setCurrentTab(tabs[currentIndex - 1])
+      try {
+        const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
+        const currentIndex = tabs.indexOf(currentTab)
+        if (currentIndex > 0) {
+          mobileFeedback.buttonPress()
+          setCurrentTab(tabs[currentIndex - 1])
+        }
+      } catch (error) {
+        console.debug('Swipe right error:', error)
       }
     },
     threshold: 100
@@ -93,22 +131,35 @@ function App() {
   // Prevent zooming on double tap
   useEffect(() => {
     const preventDefault = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
-        e.preventDefault()
+      try {
+        if (e.touches && e.touches.length > 1) {
+          e.preventDefault()
+        }
+      } catch (error) {
+        console.debug('Touch event error:', error)
       }
     }
 
     const preventZoom = (e: TouchEvent) => {
-      const t2 = e.timeStamp
-      const t1 = e.currentTarget.dataset.lastTouch || t2
-      const dt = t2 - t1
-      const fingers = e.touches.length
-      e.currentTarget.dataset.lastTouch = t2.toString()
+      try {
+        const t2 = e.timeStamp
+        const target = e.currentTarget as HTMLElement
+        if (!target || !target.dataset) return
+        
+        const t1 = parseFloat(target.dataset.lastTouch || t2.toString())
+        const dt = t2 - t1
+        const fingers = e.touches ? e.touches.length : 0
+        target.dataset.lastTouch = t2.toString()
 
-      if (!dt || dt > 500 || fingers > 1) return // not double-tap
+        if (!dt || dt > 500 || fingers > 1) return // not double-tap
 
-      e.preventDefault()
-      e.target.click()
+        e.preventDefault()
+        if (e.target && typeof (e.target as HTMLElement).click === 'function') {
+          (e.target as HTMLElement).click()
+        }
+      } catch (error) {
+        console.debug('Touch zoom prevention error:', error)
+      }
     }
 
     document.addEventListener('touchstart', preventDefault, { passive: false })

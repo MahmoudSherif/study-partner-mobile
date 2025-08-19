@@ -19,10 +19,14 @@ export function usePWA(): PWAHookReturn {
   const [isInstalled, setIsInstalled] = useState(false)
 
   // Check if running in standalone mode (installed PWA)
-  const isStandalone = typeof window !== 'undefined' && (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true
-  )
+  const isStandalone = typeof window !== 'undefined' && (() => {
+    try {
+      return window.matchMedia('(display-mode: standalone)').matches ||
+             (window.navigator as any).standalone === true
+    } catch (e) {
+      return (window.navigator as any).standalone === true
+    }
+  })()
 
   // Check if PWA is supported
   const isSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator
@@ -33,10 +37,12 @@ export function usePWA(): PWAHookReturn {
     // Register service worker
     const registerSW = async () => {
       try {
-        const registration = await navigator.serviceWorker.register('/sw.js')
-        console.log('ServiceWorker registered:', registration)
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.register('/sw.js')
+          console.log('ServiceWorker registered:', registration)
+        }
       } catch (error) {
-        console.log('ServiceWorker registration failed:', error)
+        console.debug('ServiceWorker registration failed:', error)
       }
     }
 

@@ -421,13 +421,17 @@ export function InspirationCarousel() {
                       const target = e.target as HTMLImageElement;
                       const container = target.parentElement;
                       if (container) {
-                        container.innerHTML = `
-                          <div class="w-full h-full bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                            <span class="text-2xl font-bold text-white">
-                              ${currentCharacter.name.split(' ').map(n => n[0]).join('')}
-                            </span>
-                          </div>
-                        `;
+                        try {
+                          container.innerHTML = `
+                            <div class="w-full h-full bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                              <span class="text-2xl font-bold text-white">
+                                ${currentCharacter.name.split(' ').map(n => n[0]).join('')}
+                              </span>
+                            </div>
+                          `;
+                        } catch (error) {
+                          console.debug('Image fallback error:', error);
+                        }
                       }
                     }}
                   />

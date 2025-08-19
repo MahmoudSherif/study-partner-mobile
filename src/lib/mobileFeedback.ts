@@ -71,10 +71,24 @@ export const hapticFeedback = {
 export const audioFeedback = {
   // Create simple audio tones using Web Audio API
   createTone: (frequency: number, duration: number, type: OscillatorType = 'sine') => {
-    if (!('AudioContext' in window)) return
+    // Check if audio is supported
+    if (typeof window === 'undefined') return
+    if (!('AudioContext' in window) && !('webkitAudioContext' in window)) return
     
     try {
-      const audioContext = new AudioContext()
+      // Use webkit prefix for older browsers
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioContextClass) return
+      
+      const audioContext = new AudioContextClass()
+      
+      // Check if context is suspended (mobile browsers)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {
+          // Ignore resume errors
+        })
+      }
+      
       const oscillator = audioContext.createOscillator()
       const gainNode = audioContext.createGain()
       
@@ -94,13 +108,16 @@ export const audioFeedback = {
       // Clean up after the tone finishes
       setTimeout(() => {
         try {
-          audioContext.close()
+          if (audioContext.state !== 'closed') {
+            audioContext.close()
+          }
         } catch (e) {
           // Ignore cleanup errors
         }
       }, duration + 100)
     } catch (e) {
-      // Ignore audio errors in environments that don't support it
+      // Silently ignore all audio errors
+      console.debug('Audio feedback not available:', e)
     }
   },
   
@@ -199,36 +216,6 @@ export const mobileFeedback = {
   notification: () => {
     hapticFeedback.notification()
     audioFeedback.notification()
-  },
-  
-  // Test function to demonstrate all feedback types
-  test: () => {
-    console.log('Testing haptic feedback patterns...')
-    
-    setTimeout(() => {
-      console.log('Light tap')
-      hapticFeedback.light()
-    }, 500)
-    
-    setTimeout(() => {
-      console.log('Task completion')
-      mobileFeedback.taskComplete()
-    }, 1500)
-    
-    setTimeout(() => {
-      console.log('Challenge task completion')
-      mobileFeedback.challengeTaskComplete()
-    }, 3000)
-    
-    setTimeout(() => {
-      console.log('Study session complete')
-      mobileFeedback.studySessionComplete()
-    }, 5000)
-    
-    setTimeout(() => {
-      console.log('Achievement unlocked')
-      mobileFeedback.achievement()
-    }, 7000)
   }
 }
 
@@ -307,39 +294,5 @@ export const mobileFeedbackWithPreferences = {
     console.log('🔔 Notification feedback triggered')
     hapticFeedback.notification()
     audioFeedback.notification()
-  },
-  
-  // Test function to demonstrate all feedback types
-  test: () => {
-    console.log('🧪 Testing haptic feedback patterns...')
-    
-    setTimeout(() => {
-      console.log('1. Light tap')
-      hapticFeedback.light()
-    }, 500)
-    
-    setTimeout(() => {
-      console.log('2. Task completion')
-      mobileFeedback.taskComplete()
-    }, 1500)
-    
-    setTimeout(() => {
-      console.log('3. Challenge task completion')
-      mobileFeedback.challengeTaskComplete()
-    }, 3000)
-    
-    setTimeout(() => {
-      console.log('4. Study session complete')
-      mobileFeedback.studySessionComplete()
-    }, 5000)
-    
-    setTimeout(() => {
-      console.log('5. Achievement unlocked')
-      mobileFeedback.achievement()
-    }, 7000)
-    
-    setTimeout(() => {
-      console.log('✨ Haptic feedback test complete!')
-    }, 8000)
   }
 }

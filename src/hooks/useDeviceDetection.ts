@@ -42,9 +42,16 @@ export function useDeviceDetection(): DeviceInfo {
       const orientation = window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
       
       // Detect standalone mode (PWA)
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                        (navigator as any).standalone === true ||
-                        window.location.search.includes('pwa=true')
+      let standalone = false
+      try {
+        standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                     (navigator as any).standalone === true ||
+                     window.location.search.includes('pwa=true')
+      } catch (e) {
+        // Fallback if matchMedia is not available
+        standalone = (navigator as any).standalone === true ||
+                     window.location.search.includes('pwa=true')
+      }
 
       setDeviceInfo({
         isMobile,

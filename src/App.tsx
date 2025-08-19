@@ -13,22 +13,104 @@ import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
 import { QuotesBar } from '@/components/QuotesBar'
 import { Calendar } from '@/components/Calendar'
-import { Subject, StudySession, Achievement } from '@/lib/types'
+import { TasksManagement } from '@/components/TasksManagement'
+import { TaskCelebration } from '@/components/TaskCelebration'
+import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
-import { Clock, ChartBar, Trophy, BookOpen, Calendar as CalendarIcon } from '@phosphor-icons/react'
+import { 
+  Clock, 
+  ChartBar, 
+  Trophy, 
+  BookOpen, 
+  Calendar as CalendarIcon,
+  CheckSquare 
+} from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
 function App() {
   const [subjects, setSubjects] = useKV<Subject[]>('study-subjects', [])
   const [sessions, setSessions] = useKV<StudySession[]>('study-sessions', [])
   const [achievements, setAchievements] = useKV<Achievement[]>('achievements', INITIAL_ACHIEVEMENTS)
+  const [tasks, setTasks] = useKV<Task[]>('tasks', [])
+  const [challenges, setChallenges] = useKV<Challenge[]>('challenges', [])
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false)
   const [lastSessionDuration, setLastSessionDuration] = useState(0)
+  const [celebrationData, setCelebrationData] = useState<{
+    isOpen: boolean
+    taskTitle: string
+    isChallenge: boolean
+    challengeTitle?: string
+    points?: number
+  }>({
+    isOpen: false,
+    taskTitle: '',
+    isChallenge: false
+  })
+  const [showChallengeProgress, setShowChallengeProgress] = useState(false)
 
   const stats = calculateUserStats(sessions)
+  
+  // Get current user ID (mock for now)
+  const currentUserId = 'user-1'
+
+  // Calculate task progress
+  const calculateTaskProgress = (): TaskProgress => {
+    const today = new Date()
+    const todayTasks = tasks.filter(task => {
+      const taskDate = new Date(task.createdAt)
+      return taskDate.toDateString() === today.toDateString()
+    })
+    
+    const completedTodayTasks = todayTasks.filter(task => task.completed)
+    
+    const dailyProgress = {
+      total: todayTasks.length,
+      completed: completedTodayTasks.length,
+      percentage: todayTasks.length > 0 ? (completedTodayTasks.length / todayTasks.length) * 100 : 0
+    }
+
+    // Find active challenge the user is participating in
+    const activeChallenge = challenges.find(challenge => 
+      challenge.isActive && challenge.participants.includes(currentUserId)
+    )
+
+    let challengeProgress = undefined
+    if (activeChallenge && showChallengeProgress) {
+      const userCompletedTasks = activeChallenge.tasks.filter(task => 
+        task.completedBy.includes(currentUserId)
+      ).length
+      
+      // Calculate user rank
+      const participantScores = activeChallenge.participants.map(participantId => {
+        return activeChallenge.tasks.filter(task => 
+          task.completedBy.includes(participantId)
+        ).length
+      }).sort((a, b) => b - a)
+      
+      const userScore = userCompletedTasks
+      const userRank = participantScores.findIndex(score => score === userScore) + 1
+
+      challengeProgress = {
+        challengeId: activeChallenge.id,
+        challengeTitle: activeChallenge.title,
+        totalTasks: activeChallenge.tasks.length,
+        completedTasks: userCompletedTasks,
+        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks / activeChallenge.tasks.length) * 100 : 0,
+        userRank,
+        totalParticipants: activeChallenge.participants.length
+      }
+    }
+
+    return {
+      dailyTasks: dailyProgress,
+      challengeProgress
+    }
+  }
+
+  const taskProgress = calculateTaskProgress()
 
   useEffect(() => {
     const updatedAchievements = updateAchievements(achievements, stats, sessions)
@@ -120,6 +202,135 @@ function App() {
     toast.info('Study session cancelled')
   }
 
+  // Task management functions
+  const handleAddTask = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    const newTask: Task = {
+      ...taskData,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    }
+    setTasks(current => [...current, newTask])
+  }
+
+  const handleToggleTask = (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) return
+
+    const updatedTask = {
+      ...task,
+      completed: !task.completed,
+      completedAt: !task.completed ? new Date() : undefined
+    }
+
+    setTasks(current => 
+      current.map(t => t.id === taskId ? updatedTask : t)
+    )
+
+    if (!task.completed) {
+      // Show celebration for completed task
+      setCelebrationData({
+        isOpen: true,
+        taskTitle: task.title,
+        isChallenge: false
+      })
+    }
+  }
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(current => current.filter(t => t.id !== taskId))
+    toast.success('Task deleted')
+  }
+
+  // Challenge management functions
+  const handleCreateChallenge = (challengeData: Omit<Challenge, 'id' | 'createdAt'>) => {
+    const newChallenge: Challenge = {
+      ...challengeData,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    }
+    setChallenges(current => [...current, newChallenge])
+  }
+
+  const handleJoinChallenge = (code: string) => {
+    const challenge = challenges.find(c => c.code === code && c.isActive)
+    if (!challenge) {
+      toast.error('Challenge not found or inactive')
+      return
+    }
+
+    if (challenge.participants.includes(currentUserId)) {
+      toast.info('You are already participating in this challenge')
+      return
+    }
+
+    setChallenges(current => 
+      current.map(c => 
+        c.id === challenge.id 
+          ? { ...c, participants: [...c.participants, currentUserId] }
+          : c
+      )
+    )
+    toast.success(`Joined challenge: ${challenge.title}`)
+  }
+
+  const handleAddChallengeTask = (challengeId: string, taskData: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => {
+    const newTask: import('@/lib/types').ChallengeTask = {
+      ...taskData,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+      completedBy: []
+    }
+
+    setChallenges(current => 
+      current.map(c => 
+        c.id === challengeId 
+          ? { ...c, tasks: [...c.tasks, newTask] }
+          : c
+      )
+    )
+  }
+
+  const handleToggleChallengeTask = (challengeId: string, taskId: string) => {
+    const challenge = challenges.find(c => c.id === challengeId)
+    const task = challenge?.tasks.find(t => t.id === taskId)
+    if (!challenge || !task) return
+
+    const isCompleted = task.completedBy.includes(currentUserId)
+    const updatedCompletedBy = isCompleted
+      ? task.completedBy.filter(id => id !== currentUserId)
+      : [...task.completedBy, currentUserId]
+
+    setChallenges(current => 
+      current.map(c => 
+        c.id === challengeId 
+          ? {
+              ...c,
+              tasks: c.tasks.map(t => 
+                t.id === taskId 
+                  ? { ...t, completedBy: updatedCompletedBy }
+                  : t
+              )
+            }
+          : c
+      )
+    )
+
+    if (!isCompleted) {
+      // Show celebration for completed challenge task
+      setCelebrationData({
+        isOpen: true,
+        taskTitle: task.title,
+        isChallenge: true,
+        challengeTitle: challenge.title,
+        points: task.points
+      })
+    }
+  }
+
+  const handleSwitchProgressView = () => {
+    setShowChallengeProgress(!showChallengeProgress)
+  }
+
   return (
     <div className="min-h-screen relative">
       <SpaceBackground />
@@ -131,7 +342,7 @@ function App() {
 
         <Tabs defaultValue="timer" className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
-            <TabsList className="grid w-full grid-cols-5 bg-white/10 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm">
               <TabsTrigger value="timer" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <Clock size={18} />
                 <span className="text-xs">Timer</span>
@@ -139,6 +350,10 @@ function App() {
               <TabsTrigger value="subjects" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <BookOpen size={18} />
                 <span className="text-xs">Subjects</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                <CheckSquare size={18} />
+                <span className="text-xs">Tasks</span>
               </TabsTrigger>
               <TabsTrigger value="calendar" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <CalendarIcon size={18} />
@@ -196,6 +411,26 @@ function App() {
             </div>
           </TabsContent>
 
+          <TabsContent value="tasks" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <TasksManagement
+                tasks={tasks}
+                challenges={challenges}
+                subjects={subjects}
+                taskProgress={taskProgress}
+                currentUserId={currentUserId}
+                onAddTask={handleAddTask}
+                onToggleTask={handleToggleTask}
+                onDeleteTask={handleDeleteTask}
+                onCreateChallenge={handleCreateChallenge}
+                onJoinChallenge={handleJoinChallenge}
+                onAddChallengeTask={handleAddChallengeTask}
+                onToggleChallengeTask={handleToggleChallengeTask}
+                onSwitchProgressView={handleSwitchProgressView}
+              />
+            </div>
+          </TabsContent>
+
           <TabsContent value="calendar" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
               <Calendar subjects={subjects} />
@@ -247,6 +482,15 @@ function App() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <TaskCelebration
+        isOpen={celebrationData.isOpen}
+        onClose={() => setCelebrationData({ ...celebrationData, isOpen: false })}
+        taskTitle={celebrationData.taskTitle}
+        isChallenge={celebrationData.isChallenge}
+        challengeTitle={celebrationData.challengeTitle}
+        points={celebrationData.points}
+      />
 
       <Toaster 
         position="top-center" 

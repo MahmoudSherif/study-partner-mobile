@@ -70,3 +70,55 @@ export interface CalendarEvent {
   isAllDay: boolean
   color?: string
 }
+
+export interface Task {
+  id: string
+  title: string
+  description?: string
+  completed: boolean
+  createdAt: Date
+  completedAt?: Date
+  subjectId?: string
+  priority: 'low' | 'medium' | 'high'
+  dueDate?: Date
+  estimatedTime?: number // minutes
+}
+
+export interface Challenge {
+  id: string
+  code: string
+  title: string
+  description: string
+  createdBy: string
+  createdAt: Date
+  participants: string[]
+  tasks: ChallengeTask[]
+  isActive: boolean
+  endDate?: Date
+}
+
+export interface ChallengeTask {
+  id: string
+  title: string
+  description?: string
+  completedBy: string[] // user IDs who completed this task
+  points: number
+  createdAt: Date
+}
+
+export interface TaskProgress {
+  dailyTasks: {
+    total: number
+    completed: number
+    percentage: number
+  }
+  challengeProgress?: {
+    challengeId: string
+    challengeTitle: string
+    totalTasks: number
+    completedTasks: number
+    percentage: number
+    userRank: number
+    totalParticipants: number
+  }
+}

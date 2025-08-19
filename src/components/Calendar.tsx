@@ -357,14 +357,14 @@ export function Calendar({ subjects }: CalendarProps) {
               <div className="space-y-2">
                 <Label className="text-white">Subject (Optional)</Label>
                 <Select 
-                  value={newEvent.subjectId || 'none'} 
-                  onValueChange={(value) => setNewEvent(prev => ({ ...prev, subjectId: value === 'none' ? undefined : value }))}
+                  value={newEvent.subjectId || 'no-subject'} 
+                  onValueChange={(value) => setNewEvent(prev => ({ ...prev, subjectId: value === 'no-subject' ? undefined : value }))}
                 >
                   <SelectTrigger className="bg-white/10 border-white/20 text-white">
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 border-white/20">
-                    <SelectItem value="none" className="text-white hover:bg-white/10">None</SelectItem>
+                    <SelectItem value="no-subject" className="text-white hover:bg-white/10">None</SelectItem>
                     {subjects.map(subject => (
                       <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-white/10">
                         <div className="flex items-center gap-2">

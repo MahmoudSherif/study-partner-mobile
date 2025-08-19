@@ -7,6 +7,8 @@ import { Timer } from '@/components/Timer'
 import { SubjectManagement } from '@/components/SubjectManagement'
 import { StatsOverview } from '@/components/StatsOverview'
 import { ProgressCharts } from '@/components/ProgressCharts'
+import { TargetProgress } from '@/components/TargetProgress'
+import { TargetNotifications } from '@/components/TargetNotifications'
 import { Achievements } from '@/components/Achievements'
 import { Subject, StudySession, Achievement } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
@@ -65,6 +67,21 @@ function App() {
     }
     
     toast.success(`Deleted subject: ${subject?.name}`)
+  }
+
+  const handleUpdateSubject = (id: string, updates: Partial<Subject>) => {
+    setSubjects(current => 
+      current.map(subject => 
+        subject.id === id ? { ...subject, ...updates } : subject
+      )
+    )
+    
+    // Update selected subject if it's the one being updated
+    if (selectedSubject?.id === id) {
+      setSelectedSubject(current => current ? { ...current, ...updates } : current)
+    }
+    
+    toast.success('Subject updated successfully')
   }
 
   const handleSessionComplete = (duration: number) => {
@@ -131,6 +148,12 @@ function App() {
           </div>
 
           <TabsContent value="timer" className="space-y-4 m-0">
+            <TargetNotifications 
+              subjects={subjects}
+              sessions={sessions}
+              onSelectSubject={setSelectedSubject}
+            />
+            
             {!selectedSubject ? (
               <div className="text-center py-8">
                 <BookOpen size={48} className="mx-auto text-muted-foreground mb-4" />
@@ -154,11 +177,13 @@ function App() {
               selectedSubject={selectedSubject}
               onAddSubject={handleAddSubject}
               onDeleteSubject={handleDeleteSubject}
+              onUpdateSubject={handleUpdateSubject}
               onSelectSubject={setSelectedSubject}
             />
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4 m-0">
+            <TargetProgress subjects={subjects} sessions={sessions} />
             <StatsOverview stats={stats} achievements={achievements} sessions={sessions} />
             <ProgressCharts sessions={sessions} subjects={subjects} />
           </TabsContent>

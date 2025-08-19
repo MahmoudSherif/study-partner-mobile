@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Achievement, Subject, StudySession, UserStats } from './types'
+import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification } from './types'
 import { INITIAL_ACHIEVEMENTS } from './constants'
 import { calculateStudyStreak } from './chartUtils'
 
@@ -85,4 +85,112 @@ export function formatDuration(seconds: number): string {
 
 export function getSubjectById(subjects: Subject[], id: string): Subject | undefined {
   return subjects.find(subject => subject.id === id)
+}
+
+export function getStartOfDay(date: Date = new Date()): Date {
+  const start = new Date(date)
+  start.setHours(0, 0, 0, 0)
+  return start
+}
+
+export function getStartOfWeek(date: Date = new Date()): Date {
+  const start = new Date(date)
+  const day = start.getDay()
+  const diff = start.getDate() - day
+  start.setDate(diff)
+  start.setHours(0, 0, 0, 0)
+  return start
+}
+
+export function calculateSubjectProgress(
+  subject: Subject,
+  sessions: StudySession[]
+): SubjectProgress {
+  const now = new Date()
+  const startOfDay = getStartOfDay(now)
+  const startOfWeek = getStartOfWeek(now)
+  
+  const todaySessions = sessions.filter(session => 
+    session.subjectId === subject.id && 
+    session.completed &&
+    new Date(session.startTime) >= startOfDay
+  )
+  
+  const weekSessions = sessions.filter(session =>
+    session.subjectId === subject.id &&
+    session.completed &&
+    new Date(session.startTime) >= startOfWeek
+  )
+  
+  const todayTime = todaySessions.reduce((total, session) => total + session.duration, 0)
+  const weekTime = weekSessions.reduce((total, session) => total + session.duration, 0)
+  
+  const dailyProgress = subject.dailyTarget ? Math.min((todayTime / subject.dailyTarget) * 100, 100) : 0
+  const weeklyProgress = subject.weeklyTarget ? Math.min((weekTime / subject.weeklyTarget) * 100, 100) : 0
+  
+  // Check if behind targets (with some grace period)
+  const currentHour = now.getHours()
+  const currentDayOfWeek = now.getDay()
+  
+  // For daily: if past 6 PM and less than 70% complete
+  const isBehindDaily = subject.dailyTarget ? 
+    (currentHour >= 18 && dailyProgress < 70) || (currentHour >= 22 && dailyProgress < 90) : false
+  
+  // For weekly: if it's Wednesday+ and less than 40% complete, or Friday+ and less than 70%
+  const isBehindWeekly = subject.weeklyTarget ?
+    (currentDayOfWeek >= 3 && weeklyProgress < 40) || (currentDayOfWeek >= 5 && weeklyProgress < 70) : false
+  
+  return {
+    subjectId: subject.id,
+    todayTime,
+    weekTime,
+    dailyTarget: subject.dailyTarget,
+    weeklyTarget: subject.weeklyTarget,
+    dailyProgress,
+    weeklyProgress,
+    isBehindDaily,
+    isBehindWeekly
+  }
+}
+
+export function generateTargetNotifications(
+  subjects: Subject[],
+  sessions: StudySession[]
+): TargetNotification[] {
+  const notifications: TargetNotification[] = []
+  const now = new Date()
+  
+  subjects.forEach(subject => {
+    if (!subject.dailyTarget && !subject.weeklyTarget) return
+    
+    const progress = calculateSubjectProgress(subject, sessions)
+    
+    if (progress.isBehindDaily && subject.dailyTarget) {
+      const remaining = subject.dailyTarget - progress.todayTime
+      notifications.push({
+        id: `daily-${subject.id}-${now.getTime()}`,
+        subjectId: subject.id,
+        subjectName: subject.name,
+        type: 'daily',
+        message: `You need ${remaining} more minutes of ${subject.name} to reach your daily goal!`,
+        severity: progress.dailyProgress < 50 ? 'danger' : 'warning',
+        timestamp: now
+      })
+    }
+    
+    if (progress.isBehindWeekly && subject.weeklyTarget) {
+      const remaining = subject.weeklyTarget - progress.weekTime
+      notifications.push({
+        id: `weekly-${subject.id}-${now.getTime()}`,
+        subjectId: subject.id,
+        subjectName: subject.name,
+        type: 'weekly',
+        message: `You're behind on your weekly ${subject.name} goal. ${formatTime(remaining)} remaining!`,
+        severity: progress.weeklyProgress < 30 ? 'danger' : 'warning',
+        timestamp: now
+      })
+    }
+  })
+  
+  return notifications
 }

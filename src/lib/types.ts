@@ -4,6 +4,8 @@ export interface Subject {
   color: string
   totalTime: number
   goal?: number
+  dailyTarget?: number // minutes per day
+  weeklyTarget?: number // minutes per week
 }
 
 export interface StudySession {
@@ -32,4 +34,26 @@ export interface UserStats {
   longestStreak: number
   sessionsCompleted: number
   averageSessionLength: number
+}
+
+export interface SubjectProgress {
+  subjectId: string
+  todayTime: number
+  weekTime: number
+  dailyTarget?: number
+  weeklyTarget?: number
+  dailyProgress: number // percentage 0-100
+  weeklyProgress: number // percentage 0-100
+  isBehindDaily: boolean
+  isBehindWeekly: boolean
+}
+
+export interface TargetNotification {
+  id: string
+  subjectId: string
+  subjectName: string
+  type: 'daily' | 'weekly'
+  message: string
+  severity: 'warning' | 'danger'
+  timestamp: Date
 }

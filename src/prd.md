@@ -49,10 +49,10 @@
 - **Why it matters**: Transforms raw study data into actionable insights for optimization
 - **Success criteria**: Charts accurately reflect study patterns and help identify trends
 
-### Subject-Specific Charts (New)
-- **What it does**: Individual progress tracking for each subject with weekly/monthly trends, comparison views, and performance insights
-- **Why it matters**: Helps students understand which subjects need more attention and track improvement over time
-- **Success criteria**: Subject-specific data displays accurately and provides meaningful insights
+### Subject-Specific Target Tracking (New)
+- **What it does**: Allows users to set daily and weekly study targets for each subject, with progress tracking and smart notifications when falling behind goals
+- **Why it matters**: Provides structured goal-setting and accountability to improve study consistency and prevent procrastination
+- **Success criteria**: Target setting is intuitive, progress is accurately tracked, and notifications help users stay on track without being intrusive
 
 ### Achievement System
 - **What it does**: Rewards study milestones and consistency
@@ -140,9 +140,22 @@
 **Testing Focus**: Data persistence accuracy and chart rendering on various screen sizes
 **Critical Questions**: How much historical data should be maintained for optimal performance?
 
-## Key Updates - Subject-Specific Progress Charts
+## Key Updates - Target Tracking & Notifications
 
-The recent enhancement adds comprehensive subject-specific analytics including:
+The latest enhancement adds comprehensive goal-setting and progress monitoring:
+
+1. **Daily/Weekly Target Setting**: Users can set specific minute targets for each subject on daily and weekly basis
+2. **Intelligent Progress Tracking**: Real-time calculation of progress percentages with smart detection of when users are falling behind
+3. **Smart Notifications**: Context-aware alerts that appear when users are significantly behind their targets, with appropriate timing (evening for daily, mid-week for weekly)
+4. **Target Progress Visualization**: Clear progress bars and indicators showing current progress against set targets
+5. **Quick Action Integration**: Direct links from notifications to start studying the relevant subject
+6. **Dismissible Alerts**: Users can dismiss notifications that reset appropriately to avoid spam
+
+These features transform passive tracking into active goal management, helping students maintain consistent study habits and achieve their learning objectives through structured accountability.
+
+## Previous Updates - Subject-Specific Progress Charts
+
+The app includes comprehensive subject-specific analytics:
 
 1. **Individual Subject Selection**: Dropdown to choose specific subjects for detailed analysis
 2. **Subject Weekly Progress**: Area charts showing study time trends for selected subjects
@@ -150,8 +163,6 @@ The recent enhancement adds comprehensive subject-specific analytics including:
 4. **Subject Comparison**: Side-by-side comparison of this week vs last week performance across all subjects
 5. **Performance Insights**: Detailed metrics including total time, weekly averages, and goal progress with visual progress bars
 
-These features transform the app from general study tracking to sophisticated per-subject performance analysis, enabling students to identify which topics need more attention and track improvement over time.
-
 ## Reflection
 
-This approach uniquely combines simplicity with powerful analytics, providing immediate value (timer) while building long-term engagement through insights and achievements. The subject-specific charts add significant value by enabling targeted study strategy optimization.
+This approach uniquely combines simplicity with powerful analytics and goal management, providing immediate value (timer) while building long-term engagement through insights, achievements, and structured target tracking. The combination of subject-specific charts and target notifications creates a comprehensive study management system that helps students both track their progress and maintain consistent study habits through intelligent accountability features.

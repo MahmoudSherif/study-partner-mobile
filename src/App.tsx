@@ -15,9 +15,16 @@ import { QuotesBar } from '@/components/QuotesBar'
 import { Calendar } from '@/components/Calendar'
 import { TasksManagement } from '@/components/TasksManagement'
 import { TaskCelebration } from '@/components/TaskCelebration'
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
+import { DeviceIndicator } from '@/components/DeviceIndicator'
+import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
+import { useTouchGestures } from '@/hooks/useTouchGestures'
+import { usePWA } from '@/hooks/usePWA'
+import { useMobileBehavior } from '@/hooks/useDeviceDetection'
+import { mobileFeedback } from '@/lib/mobileFeedback'
 import { 
   Clock, 
   ChartBar, 
@@ -34,6 +41,7 @@ function App() {
   const [achievements, setAchievements] = useKV<Achievement[]>('achievements', INITIAL_ACHIEVEMENTS)
   const [tasks, setTasks] = useKV<Task[]>('tasks', [])
   const [challenges, setChallenges] = useKV<Challenge[]>('challenges', [])
+  const [currentTab, setCurrentTab] = useState('timer')
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false)
@@ -52,9 +60,71 @@ function App() {
   const [showChallengeProgress, setShowChallengeProgress] = useState(false)
 
   const stats = calculateUserStats(sessions)
+  const { isStandalone } = usePWA()
+  const deviceInfo = useMobileBehavior()
   
   // Get current user ID (mock for now)
   const currentUserId = 'user-1'
+
+  // Touch gestures for tab navigation
+  const containerRef = useTouchGestures({
+    onSwipeLeft: () => {
+      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements']
+      const currentIndex = tabs.indexOf(currentTab)
+      if (currentIndex < tabs.length - 1) {
+        mobileFeedback.buttonPress()
+        setCurrentTab(tabs[currentIndex + 1])
+      }
+    },
+    onSwipeRight: () => {
+      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements']
+      const currentIndex = tabs.indexOf(currentTab)
+      if (currentIndex > 0) {
+        mobileFeedback.buttonPress()
+        setCurrentTab(tabs[currentIndex - 1])
+      }
+    },
+    threshold: 100
+  })
+
+  // Prevent zooming on double tap
+  useEffect(() => {
+    const preventDefault = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault()
+      }
+    }
+
+    const preventZoom = (e: TouchEvent) => {
+      const t2 = e.timeStamp
+      const t1 = e.currentTarget.dataset.lastTouch || t2
+      const dt = t2 - t1
+      const fingers = e.touches.length
+      e.currentTarget.dataset.lastTouch = t2.toString()
+
+      if (!dt || dt > 500 || fingers > 1) return // not double-tap
+
+      e.preventDefault()
+      e.target.click()
+    }
+
+    document.addEventListener('touchstart', preventDefault, { passive: false })
+    document.addEventListener('touchstart', preventZoom, { passive: false })
+
+    return () => {
+      document.removeEventListener('touchstart', preventDefault)
+      document.removeEventListener('touchstart', preventZoom)
+    }
+  }, [])
+
+  // Handle URL tab parameter for PWA shortcuts
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tabParam = urlParams.get('tab')
+    if (tabParam && ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements'].includes(tabParam)) {
+      setCurrentTab(tabParam)
+    }
+  }, [])
 
   // Calculate task progress
   const calculateTaskProgress = (): TaskProgress => {
@@ -332,38 +402,41 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative" ref={containerRef}>
       <SpaceBackground />
-      <div className="relative z-10 container max-w-md mx-auto p-4 pb-28">{/* Increased bottom padding for quotes bar */}
+      <OfflineIndicator />
+      {!isStandalone && <PWAInstallPrompt />}
+      
+      <div className="relative z-10 container max-w-md mx-auto p-4 pb-28 no-select">
         <header className="text-center py-6">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">StudyPartner</h1>
           <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
         </header>
 
-        <Tabs defaultValue="timer" className="space-y-6">
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
             <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm">
-              <TabsTrigger value="timer" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <TabsTrigger value="timer" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Clock size={18} />
                 <span className="text-xs">Timer</span>
               </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <TabsTrigger value="subjects" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <BookOpen size={18} />
                 <span className="text-xs">Subjects</span>
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <TabsTrigger value="tasks" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <CheckSquare size={18} />
                 <span className="text-xs">Tasks</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <TabsTrigger value="calendar" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <CalendarIcon size={18} />
                 <span className="text-xs">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="stats" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <TabsTrigger value="stats" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <ChartBar size={18} />
                 <span className="text-xs">Stats</span>
               </TabsTrigger>
-              <TabsTrigger value="achievements" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <TabsTrigger value="achievements" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Trophy size={18} />
                 <span className="text-xs">Awards</span>
               </TabsTrigger>
@@ -458,6 +531,7 @@ function App() {
       </div>
 
       <QuotesBar />
+      <DeviceIndicator />
 
       <Dialog open={completionDialogOpen} onOpenChange={setCompletionDialogOpen}>
         <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white">

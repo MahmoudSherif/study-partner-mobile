@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Trophy, Star, Target, Sparkle } from '@phosphor-icons/react'
+import { mobileFeedback } from '@/lib/mobileFeedback'
 
 interface TaskCelebrationProps {
   isOpen: boolean
@@ -24,6 +25,13 @@ export function TaskCelebration({
   
   useEffect(() => {
     if (isOpen) {
+      // Trigger mobile feedback
+      if (isChallenge) {
+        mobileFeedback.achievement()
+      } else {
+        mobileFeedback.taskComplete()
+      }
+      
       // Trigger confetti animation
       const duration = 3000
       const animationEnd = Date.now() + duration
@@ -57,7 +65,7 @@ export function TaskCelebration({
 
       return () => clearInterval(interval)
     }
-  }, [isOpen])
+  }, [isOpen, isChallenge])
 
   if (!isOpen) return null
 

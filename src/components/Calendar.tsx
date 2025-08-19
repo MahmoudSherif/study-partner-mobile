@@ -210,6 +210,7 @@ export function Calendar({ subjects }: CalendarProps) {
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((date, index) => {
             const dayEvents = getEventsForDate(date)
+            const hasEvents = dayEvents.length > 0
             return (
               <button
                 key={index}
@@ -219,9 +220,19 @@ export function Calendar({ subjects }: CalendarProps) {
                   "hover:bg-white/10",
                   isCurrentMonth(date) ? "text-white" : "text-white/30",
                   isToday(date) && "bg-accent/30 border border-accent",
-                  isSelected(date) && "bg-white/20 border border-white/40"
+                  isSelected(date) && "bg-white/20 border border-white/40",
+                  hasEvents && isCurrentMonth(date) && "ring-1 ring-accent/50 bg-accent/10"
                 )}
               >
+                {/* Event Flag - Top Right Corner */}
+                {hasEvents && isCurrentMonth(date) && (
+                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-accent rounded-full border border-background flex items-center justify-center">
+                    <span className="text-[8px] text-accent-foreground font-bold">
+                      {dayEvents.length > 9 ? '9+' : dayEvents.length}
+                    </span>
+                  </div>
+                )}
+                
                 <div className="flex flex-col h-full">
                   <span className="text-xs">{date.getDate()}</span>
                   {dayEvents.length > 0 && (

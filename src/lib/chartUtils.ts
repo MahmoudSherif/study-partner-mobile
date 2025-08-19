@@ -219,3 +219,127 @@ export function getBestStudyTime(sessions: StudySession[]): { hour: number; sess
     sessions: maxSessions
   }
 }
+
+/**
+ * Get subject-specific weekly data for individual topic performance
+ */
+export function getSubjectWeeklyData(sessions: StudySession[], subjects: Subject[]): { [subjectId: string]: WeeklyData[] } {
+  const now = new Date()
+  const subjectWeeklyData: { [subjectId: string]: WeeklyData[] } = {}
+  
+  subjects.forEach(subject => {
+    const weeks: WeeklyData[] = []
+    
+    for (let i = 3; i >= 0; i--) {
+      const weekStart = new Date(now)
+      weekStart.setDate(now.getDate() - (i * 7) - now.getDay())
+      weekStart.setHours(0, 0, 0, 0)
+      
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekStart.getDate() + 6)
+      weekEnd.setHours(23, 59, 59, 999)
+      
+      const weekSessions = sessions.filter(session => {
+        const sessionDate = new Date(session.startTime)
+        return sessionDate >= weekStart && sessionDate <= weekEnd && 
+               session.completed && session.subjectId === subject.id
+      })
+      
+      const totalMinutes = weekSessions.reduce((sum, session) => sum + session.duration, 0)
+      
+      const weekLabel = i === 0 ? 'This Week' : 
+                       i === 1 ? 'Last Week' : 
+                       `${i} weeks ago`
+      
+      weeks.push({
+        week: weekLabel,
+        minutes: totalMinutes,
+        sessions: weekSessions.length
+      })
+    }
+    
+    subjectWeeklyData[subject.id] = weeks
+  })
+  
+  return subjectWeeklyData
+}
+
+/**
+ * Get subject-specific monthly data for individual topic performance
+ */
+export function getSubjectMonthlyData(sessions: StudySession[], subjects: Subject[]): { [subjectId: string]: MonthlyData[] } {
+  const now = new Date()
+  const subjectMonthlyData: { [subjectId: string]: MonthlyData[] } = {}
+  
+  subjects.forEach(subject => {
+    const months: MonthlyData[] = []
+    
+    for (let i = 5; i >= 0; i--) {
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59, 999)
+      
+      const monthSessions = sessions.filter(session => {
+        const sessionDate = new Date(session.startTime)
+        return sessionDate >= monthStart && sessionDate <= monthEnd && 
+               session.completed && session.subjectId === subject.id
+      })
+      
+      const totalMinutes = monthSessions.reduce((sum, session) => sum + session.duration, 0)
+      
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      const monthLabel = monthNames[monthStart.getMonth()]
+      
+      months.push({
+        month: monthLabel,
+        minutes: totalMinutes,
+        sessions: monthSessions.length
+      })
+    }
+    
+    subjectMonthlyData[subject.id] = months
+  })
+  
+  return subjectMonthlyData
+}
+
+/**
+ * Get comparative subject performance over time periods
+ */
+export function getSubjectComparison(sessions: StudySession[], subjects: Subject[]): Array<{ name: string; thisWeek: number; lastWeek: number; color: string }> {
+  const now = new Date()
+  
+  // This week
+  const thisWeekStart = new Date(now)
+  thisWeekStart.setDate(now.getDate() - now.getDay())
+  thisWeekStart.setHours(0, 0, 0, 0)
+  
+  // Last week
+  const lastWeekStart = new Date(thisWeekStart)
+  lastWeekStart.setDate(thisWeekStart.getDate() - 7)
+  const lastWeekEnd = new Date(thisWeekStart)
+  lastWeekEnd.setMilliseconds(-1)
+  
+  return subjects.map(subject => {
+    const thisWeekSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.startTime)
+      return sessionDate >= thisWeekStart && session.completed && session.subjectId === subject.id
+    })
+    
+    const lastWeekSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.startTime)
+      return sessionDate >= lastWeekStart && sessionDate <= lastWeekEnd && 
+             session.completed && session.subjectId === subject.id
+    })
+    
+    const thisWeekMinutes = thisWeekSessions.reduce((sum, session) => sum + session.duration, 0)
+    const lastWeekMinutes = lastWeekSessions.reduce((sum, session) => sum + session.duration, 0)
+    
+    return {
+      name: subject.name,
+      thisWeek: thisWeekMinutes,
+      lastWeek: lastWeekMinutes,
+      color: subject.color
+    }
+  }).filter(data => data.thisWeek > 0 || data.lastWeek > 0)
+}

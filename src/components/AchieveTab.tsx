@@ -139,58 +139,63 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     toast.success(`Focus session completed! ${sessionMinutes} minutes of focused work.`)
   }
 
-  // Update goals progress
+  // Update goals progress with error handling
   const updateGoalsProgress = (minutes: number) => {
-    const today = new Date()
-    const updatedGoals = goals.map(goal => {
-      let shouldUpdate = false
-      
-      if (goal.category === 'daily') {
-        // Check if goal is for today
-        const goalDate = new Date(goal.createdAt)
-        if (goalDate.toDateString() === today.toDateString()) {
+    try {
+      const today = new Date()
+      const updatedGoals = goals.map(goal => {
+        let shouldUpdate = false
+        
+        if (goal.category === 'daily') {
+          // Check if goal is for today
+          const goalDate = new Date(goal.createdAt)
+          if (goalDate.toDateString() === today.toDateString()) {
+            shouldUpdate = true
+          }
+        } else if (goal.category === 'weekly') {
+          // Check if goal is for this week
+          const startOfWeek = new Date(today)
+          startOfWeek.setDate(today.getDate() - today.getDay())
+          const goalDate = new Date(goal.createdAt)
+          if (goalDate >= startOfWeek) {
+            shouldUpdate = true
+          }
+        } else if (goal.category === 'monthly') {
+          // Check if goal is for this month
+          const goalDate = new Date(goal.createdAt)
+          if (goalDate.getMonth() === today.getMonth() && goalDate.getFullYear() === today.getFullYear()) {
+            shouldUpdate = true
+          }
+        } else {
+          // Custom goals always get updated
           shouldUpdate = true
         }
-      } else if (goal.category === 'weekly') {
-        // Check if goal is for this week
-        const startOfWeek = new Date(today)
-        startOfWeek.setDate(today.getDate() - today.getDay())
-        const goalDate = new Date(goal.createdAt)
-        if (goalDate >= startOfWeek) {
-          shouldUpdate = true
-        }
-      } else if (goal.category === 'monthly') {
-        // Check if goal is for this month
-        const goalDate = new Date(goal.createdAt)
-        if (goalDate.getMonth() === today.getMonth() && goalDate.getFullYear() === today.getFullYear()) {
-          shouldUpdate = true
-        }
-      } else {
-        // Custom goals always get updated
-        shouldUpdate = true
-      }
 
-      if (shouldUpdate && !goal.isCompleted) {
-        const newCurrent = Math.min(goal.current + minutes, goal.target)
-        const wasCompleted = goal.isCompleted
-        const isNowCompleted = newCurrent >= goal.target
+        if (shouldUpdate && !goal.isCompleted) {
+          const newCurrent = Math.min(goal.current + minutes, goal.target)
+          const wasCompleted = goal.isCompleted
+          const isNowCompleted = newCurrent >= goal.target
 
-        if (!wasCompleted && isNowCompleted) {
-          mobileFeedback.achievement()
-          toast.success(`🎯 Goal completed: ${goal.title}!`)
+          if (!wasCompleted && isNowCompleted) {
+            mobileFeedback.achievement()
+            toast.success(`🎯 Goal completed: ${goal.title}!`)
+          }
+
+          return {
+            ...goal,
+            current: newCurrent,
+            isCompleted: isNowCompleted
+          }
         }
+        
+        return goal
+      })
 
-        return {
-          ...goal,
-          current: newCurrent,
-          isCompleted: isNowCompleted
-        }
-      }
-      
-      return goal
-    })
-
-    setGoals(updatedGoals)
+      setGoals(updatedGoals)
+    } catch (error) {
+      console.error('Error updating goals progress:', error)
+      // Don't show user error, just log it
+    }
   }
 
   // Add new goal

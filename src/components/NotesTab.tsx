@@ -60,20 +60,25 @@ export function NotesTab() {
 
   // Initialize notes with random positions if empty
   useEffect(() => {
-    if (notes.length === 0) {
-      const welcomeNote: StickyNote = {
-        id: 'welcome-note',
-        title: 'Welcome to Notes! 📝',
-        content: 'This is your digital sticky note board. Create, organize, and manage your thoughts and ideas here!',
-        color: NOTE_COLORS[0].value,
-        position: { x: 20, y: 20 },
-        size: { width: 250, height: 200 },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        isPinned: true,
-        tags: ['welcome', 'tutorial']
+    try {
+      if (notes.length === 0) {
+        const welcomeNote: StickyNote = {
+          id: 'welcome-note',
+          title: 'Welcome to Notes! 📝',
+          content: 'This is your digital sticky note board. Create, organize, and manage your thoughts and ideas here!',
+          color: NOTE_COLORS[0].value,
+          position: { x: 20, y: 20 },
+          size: { width: 250, height: 200 },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isPinned: true,
+          tags: ['welcome', 'tutorial']
+        }
+        setNotes([welcomeNote])
       }
-      setNotes([welcomeNote])
+    } catch (error) {
+      console.error('Error initializing notes:', error)
+      // Don't show user error for initialization
     }
   }, [])
 

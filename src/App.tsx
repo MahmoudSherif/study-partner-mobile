@@ -48,16 +48,36 @@ function App() {
 }
 
 function AppContent() {
-  // Global error handling
+  // Global error handling with improved specificity
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error('Global error caught:', event.error)
-      toast.error('An unexpected error occurred. Please refresh if issues persist.')
+      // Only show toast for serious errors, not minor UI glitches
+      if (event.error && !event.error.message?.includes('ResizeObserver')) {
+        toast.error('An unexpected error occurred. Please refresh if issues persist.')
+      }
     }
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Unhandled promise rejection:', event.reason)
-      toast.error('A background operation failed. Please try again.')
+      
+      // Check if it's a useKV storage error
+      if (event.reason?.message?.includes('storage') || event.reason?.message?.includes('KV')) {
+        console.log('Storage operation failed, likely due to browser restrictions')
+        // Don't show error toast for storage failures as they're often recoverable
+        return
+      }
+      
+      // Check if it's a network error
+      if (event.reason?.message?.includes('fetch') || event.reason?.message?.includes('network')) {
+        console.log('Network operation failed')
+        return
+      }
+      
+      // Only show toast for genuine application errors
+      if (event.reason && typeof event.reason === 'object' && event.reason.message) {
+        console.log('Background operation error details:', event.reason.message)
+      }
     }
 
     window.addEventListener('error', handleError)
@@ -242,60 +262,70 @@ function AppContent() {
 
   // Check for progress milestones and trigger haptic feedback
   useEffect(() => {
-    const dailyPercentage = taskProgress.dailyTasks.percentage
-    const challengePercentage = taskProgress.challengeProgress?.percentage || 0
+    try {
+      const dailyPercentage = taskProgress.dailyTasks.percentage
+      const challengePercentage = taskProgress.challengeProgress?.percentage || 0
 
-    // Check daily task milestones (25%, 50%, 75%, 100%)
-    const dailyMilestones = [25, 50, 75, 100]
-    const reachedDailyMilestone = dailyMilestones.find(milestone => 
-      dailyPercentage >= milestone && previousDailyProgress < milestone
-    )
+      // Check daily task milestones (25%, 50%, 75%, 100%)
+      const dailyMilestones = [25, 50, 75, 100]
+      const reachedDailyMilestone = dailyMilestones.find(milestone => 
+        dailyPercentage >= milestone && previousDailyProgress < milestone
+      )
 
-    if (reachedDailyMilestone && dailyPercentage > 0) {
-      mobileFeedback.progressMilestone()
-      toast.success(`Daily Progress: ${reachedDailyMilestone}% complete! 🎯`, {
-        description: `${taskProgress.dailyTasks.completed}/${taskProgress.dailyTasks.total} tasks done today`,
-      })
+      if (reachedDailyMilestone && dailyPercentage > 0) {
+        mobileFeedback.progressMilestone()
+        toast.success(`Daily Progress: ${reachedDailyMilestone}% complete! 🎯`, {
+          description: `${taskProgress.dailyTasks.completed}/${taskProgress.dailyTasks.total} tasks done today`,
+        })
+      }
+
+      // Check challenge milestones
+      const challengeMilestones = [25, 50, 75, 100]
+      const reachedChallengeMilestone = challengeMilestones.find(milestone => 
+        challengePercentage >= milestone && previousChallengeProgress < milestone
+      )
+
+      if (reachedChallengeMilestone && challengePercentage > 0 && taskProgress.challengeProgress) {
+        mobileFeedback.progressMilestone()
+        toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
+          description: `${taskProgress.challengeProgress.completedTasks}/${taskProgress.challengeProgress.totalTasks} tasks in ${taskProgress.challengeProgress.challengeTitle}`,
+        })
+      }
+
+      setPreviousDailyProgress(dailyPercentage)
+      setPreviousChallengeProgress(challengePercentage)
+    } catch (error) {
+      console.error('Error checking progress milestones:', error)
+      // Don't show user error for milestone tracking
     }
-
-    // Check challenge milestones
-    const challengeMilestones = [25, 50, 75, 100]
-    const reachedChallengeMilestone = challengeMilestones.find(milestone => 
-      challengePercentage >= milestone && previousChallengeProgress < milestone
-    )
-
-    if (reachedChallengeMilestone && challengePercentage > 0 && taskProgress.challengeProgress) {
-      mobileFeedback.progressMilestone()
-      toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
-        description: `${taskProgress.challengeProgress.completedTasks}/${taskProgress.challengeProgress.totalTasks} tasks in ${taskProgress.challengeProgress.challengeTitle}`,
-      })
-    }
-
-    setPreviousDailyProgress(dailyPercentage)
-    setPreviousChallengeProgress(challengePercentage)
   }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.percentage])
 
   useEffect(() => {
-    const updatedAchievements = updateAchievements(achievements, stats, sessions)
-    
-    // Check for newly unlocked achievements
-    const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
-      achievement.unlocked && !achievements[index]?.unlocked
-    )
-    
-    if (newlyUnlocked.length > 0) {
-      setAchievements(updatedAchievements)
-      newlyUnlocked.forEach(achievement => {
-        // Trigger achievement haptic feedback
-        mobileFeedback.achievement()
-        
-        toast.success(`Achievement Unlocked: ${achievement.title}`, {
-          description: achievement.description,
-          duration: 5000
+    try {
+      const updatedAchievements = updateAchievements(achievements, stats, sessions)
+      
+      // Check for newly unlocked achievements
+      const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
+        achievement.unlocked && !achievements[index]?.unlocked
+      )
+      
+      if (newlyUnlocked.length > 0) {
+        setAchievements(updatedAchievements)
+        newlyUnlocked.forEach(achievement => {
+          // Trigger achievement haptic feedback
+          mobileFeedback.achievement()
+          
+          toast.success(`Achievement Unlocked: ${achievement.title}`, {
+            description: achievement.description,
+            duration: 5000
+          })
         })
-      })
-    } else {
-      setAchievements(updatedAchievements)
+      } else {
+        setAchievements(updatedAchievements)
+      }
+    } catch (error) {
+      console.error('Error updating achievements:', error)
+      // Don't show user error for achievements update
     }
   }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak])
 
@@ -336,35 +366,40 @@ function AppContent() {
   }
 
   const handleSessionComplete = (duration: number) => {
-    if (!selectedSubject) return
+    try {
+      if (!selectedSubject) return
 
-    const session: StudySession = {
-      id: Date.now().toString(),
-      subjectId: selectedSubject.id,
-      startTime: new Date(),
-      endTime: new Date(),
-      duration: Math.round(duration),
-      completed: true
-    }
+      const session: StudySession = {
+        id: Date.now().toString(),
+        subjectId: selectedSubject.id,
+        startTime: new Date(),
+        endTime: new Date(),
+        duration: Math.round(duration),
+        completed: true
+      }
 
-    setSessions(current => [...current, session])
-    
-    // Update subject total time
-    setSubjects(current => 
-      current.map(subject => 
-        subject.id === selectedSubject.id 
-          ? { ...subject, totalTime: subject.totalTime + Math.round(duration) }
-          : subject
+      setSessions(current => [...current, session])
+      
+      // Update subject total time
+      setSubjects(current => 
+        current.map(subject => 
+          subject.id === selectedSubject.id 
+            ? { ...subject, totalTime: subject.totalTime + Math.round(duration) }
+            : subject
+        )
       )
-    )
 
-    // Trigger haptic feedback for study session completion
-    mobileFeedback.studySessionComplete()
+      // Trigger haptic feedback for study session completion
+      mobileFeedback.studySessionComplete()
 
-    setLastSessionDuration(Math.round(duration))
-    setCompletionDialogOpen(true)
-    
-    toast.success(`Great job! You studied ${selectedSubject.name} for ${Math.round(duration)} minutes.`)
+      setLastSessionDuration(Math.round(duration))
+      setCompletionDialogOpen(true)
+      
+      toast.success(`Great job! You studied ${selectedSubject.name} for ${Math.round(duration)} minutes.`)
+    } catch (error) {
+      console.error('Error completing session:', error)
+      toast.error('Failed to save session. Please try again.')
+    }
   }
 
   const handleSessionCancel = () => {
@@ -387,29 +422,34 @@ function AppContent() {
   }
 
   const handleToggleTask = (taskId: string) => {
-    const task = tasks.find(t => t.id === taskId)
-    if (!task) return
+    try {
+      const task = tasks.find(t => t.id === taskId)
+      if (!task) return
 
-    const updatedTask = {
-      ...task,
-      completed: !task.completed,
-      completedAt: !task.completed ? new Date() : undefined
-    }
+      const updatedTask = {
+        ...task,
+        completed: !task.completed,
+        completedAt: !task.completed ? new Date() : undefined
+      }
 
-    setTasks(current => 
-      current.map(t => t.id === taskId ? updatedTask : t)
-    )
+      setTasks(current => 
+        current.map(t => t.id === taskId ? updatedTask : t)
+      )
 
-    if (!task.completed) {
-      // Trigger haptic feedback for task completion
-      mobileFeedback.taskComplete()
-      
-      // Show celebration for completed task
-      setCelebrationData({
-        isOpen: true,
-        taskTitle: task.title,
-        isChallenge: false
-      })
+      if (!task.completed) {
+        // Trigger haptic feedback for task completion
+        mobileFeedback.taskComplete()
+        
+        // Show celebration for completed task
+        setCelebrationData({
+          isOpen: true,
+          taskTitle: task.title,
+          isChallenge: false
+        })
+      }
+    } catch (error) {
+      console.error('Error toggling task:', error)
+      toast.error('Failed to update task. Please try again.')
     }
   }
 
@@ -468,42 +508,47 @@ function AppContent() {
   }
 
   const handleToggleChallengeTask = (challengeId: string, taskId: string) => {
-    const challenge = challenges.find(c => c.id === challengeId)
-    const task = challenge?.tasks.find(t => t.id === taskId)
-    if (!challenge || !task) return
+    try {
+      const challenge = challenges.find(c => c.id === challengeId)
+      const task = challenge?.tasks.find(t => t.id === taskId)
+      if (!challenge || !task) return
 
-    const isCompleted = task.completedBy.includes(currentUserId)
-    const updatedCompletedBy = isCompleted
-      ? task.completedBy.filter(id => id !== currentUserId)
-      : [...task.completedBy, currentUserId]
+      const isCompleted = task.completedBy.includes(currentUserId)
+      const updatedCompletedBy = isCompleted
+        ? task.completedBy.filter(id => id !== currentUserId)
+        : [...task.completedBy, currentUserId]
 
-    setChallenges(current => 
-      current.map(c => 
-        c.id === challengeId 
-          ? {
-              ...c,
-              tasks: c.tasks.map(t => 
-                t.id === taskId 
-                  ? { ...t, completedBy: updatedCompletedBy }
-                  : t
-              )
-            }
-          : c
+      setChallenges(current => 
+        current.map(c => 
+          c.id === challengeId 
+            ? {
+                ...c,
+                tasks: c.tasks.map(t => 
+                  t.id === taskId 
+                    ? { ...t, completedBy: updatedCompletedBy }
+                    : t
+                )
+              }
+            : c
+        )
       )
-    )
 
-    if (!isCompleted) {
-      // Trigger special haptic feedback for challenge task completion
-      mobileFeedback.challengeTaskComplete()
-      
-      // Show celebration for completed challenge task
-      setCelebrationData({
-        isOpen: true,
-        taskTitle: task.title,
-        isChallenge: true,
-        challengeTitle: challenge.title,
-        points: task.points
-      })
+      if (!isCompleted) {
+        // Trigger special haptic feedback for challenge task completion
+        mobileFeedback.challengeTaskComplete()
+        
+        // Show celebration for completed challenge task
+        setCelebrationData({
+          isOpen: true,
+          taskTitle: task.title,
+          isChallenge: true,
+          challengeTitle: challenge.title,
+          points: task.points
+        })
+      }
+    } catch (error) {
+      console.error('Error toggling challenge task:', error)
+      toast.error('Failed to update challenge task. Please try again.')
     }
   }
 

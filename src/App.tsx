@@ -3,7 +3,7 @@ import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { StatsOverview } from '@/components/StatsOverview'
+import { ProfileTab } from '@/components/ProfileTab'
 import { ProgressCharts } from '@/components/ProgressCharts'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
@@ -35,7 +35,8 @@ import {
   CheckSquare,
   Lightbulb,
   Target,
-  StickyNote
+  StickyNote,
+  User
 } from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
@@ -125,7 +126,7 @@ function AppContent() {
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
       try {
-        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'stats', 'achievements', 'inspiration']
+        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
         const currentIndex = tabs.indexOf(currentTab)
         if (currentIndex < tabs.length - 1) {
           setCurrentTab(tabs[currentIndex + 1])
@@ -136,7 +137,7 @@ function AppContent() {
     },
     onSwipeRight: () => {
       try {
-        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'stats', 'achievements', 'inspiration']
+        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
         const currentIndex = tabs.indexOf(currentTab)
         if (currentIndex > 0) {
           setCurrentTab(tabs[currentIndex - 1])
@@ -195,7 +196,7 @@ function AppContent() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const tabParam = urlParams.get('tab')
-    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'stats', 'achievements', 'inspiration'].includes(tabParam)) {
+    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration'].includes(tabParam)) {
       setCurrentTab(tabParam)
     }
   }, [])
@@ -587,9 +588,9 @@ function AppContent() {
                 <StickyNote size={16} />
                 <span className="text-xs">Notes</span>
               </TabsTrigger>
-              <TabsTrigger value="stats" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <ChartBar size={16} />
-                <span className="text-xs">Stats</span>
+              <TabsTrigger value="profile" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <User size={16} />
+                <span className="text-xs">Profile</span>
               </TabsTrigger>
               <TabsTrigger value="achievements" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Trophy size={16} />
@@ -643,9 +644,9 @@ function AppContent() {
             </div>
           </TabsContent>
 
-          <TabsContent value="stats" className="space-y-4 m-0">
+          <TabsContent value="profile" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-              <StatsOverview stats={stats} achievements={achievements} sessions={sessions} />
+              <ProfileTab stats={stats} achievements={achievements} sessions={sessions} />
             </div>
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
               <ProgressCharts sessions={sessions} subjects={subjects} />

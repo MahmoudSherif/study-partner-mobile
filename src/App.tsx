@@ -19,6 +19,7 @@ import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { DeviceIndicator } from '@/components/DeviceIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { HapticTestPanel } from '@/components/HapticTestPanel'
+import { InspirationCarousel } from '@/components/InspirationCarousel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -32,7 +33,8 @@ import {
   Trophy, 
   BookOpen, 
   Calendar as CalendarIcon,
-  CheckSquare 
+  CheckSquare,
+  Lightbulb
 } from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
@@ -70,7 +72,7 @@ function App() {
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
-      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements']
+      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
       const currentIndex = tabs.indexOf(currentTab)
       if (currentIndex < tabs.length - 1) {
         mobileFeedback.buttonPress()
@@ -78,7 +80,7 @@ function App() {
       }
     },
     onSwipeRight: () => {
-      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements']
+      const tabs = ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration']
       const currentIndex = tabs.indexOf(currentTab)
       if (currentIndex > 0) {
         mobileFeedback.buttonPress()
@@ -122,7 +124,7 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const tabParam = urlParams.get('tab')
-    if (tabParam && ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements'].includes(tabParam)) {
+    if (tabParam && ['timer', 'subjects', 'tasks', 'calendar', 'stats', 'achievements', 'inspiration'].includes(tabParam)) {
       setCurrentTab(tabParam)
     }
   }, [])
@@ -470,30 +472,34 @@ function App() {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
-            <TabsList className="grid w-full grid-cols-6 bg-white/10 backdrop-blur-sm">
-              <TabsTrigger value="timer" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <Clock size={18} />
+            <TabsList className="grid w-full grid-cols-7 bg-white/10 backdrop-blur-sm">
+              <TabsTrigger value="timer" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Clock size={16} />
                 <span className="text-xs">Timer</span>
               </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <BookOpen size={18} />
+              <TabsTrigger value="subjects" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <BookOpen size={16} />
                 <span className="text-xs">Subjects</span>
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <CheckSquare size={18} />
+              <TabsTrigger value="tasks" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CheckSquare size={16} />
                 <span className="text-xs">Tasks</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <CalendarIcon size={18} />
+              <TabsTrigger value="calendar" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CalendarIcon size={16} />
                 <span className="text-xs">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="stats" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <ChartBar size={18} />
+              <TabsTrigger value="stats" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <ChartBar size={16} />
                 <span className="text-xs">Stats</span>
               </TabsTrigger>
-              <TabsTrigger value="achievements" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <Trophy size={18} />
+              <TabsTrigger value="achievements" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Trophy size={16} />
                 <span className="text-xs">Awards</span>
+              </TabsTrigger>
+              <TabsTrigger value="inspiration" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Lightbulb size={16} />
+                <span className="text-xs">Inspire</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -580,6 +586,12 @@ function App() {
           <TabsContent value="achievements" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
               <Achievements achievements={achievements} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="inspiration" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <InspirationCarousel />
             </div>
           </TabsContent>
         </Tabs>

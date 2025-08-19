@@ -10,6 +10,7 @@ import { ProgressCharts } from '@/components/ProgressCharts'
 import { TargetProgress } from '@/components/TargetProgress'
 import { TargetNotifications } from '@/components/TargetNotifications'
 import { Achievements } from '@/components/Achievements'
+import { SpaceBackground } from '@/components/SpaceBackground'
 import { Subject, StudySession, Achievement } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -118,29 +119,30 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-md mx-auto p-4 pb-20">
+    <div className="min-h-screen relative">
+      <SpaceBackground />
+      <div className="relative z-10 container max-w-md mx-auto p-4 pb-20">
         <header className="text-center py-6">
-          <h1 className="text-2xl font-bold text-primary">StudyPartner</h1>
-          <p className="text-muted-foreground text-sm">Your mobile study companion</p>
+          <h1 className="text-2xl font-bold text-white drop-shadow-lg">StudyPartner</h1>
+          <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
         </header>
 
         <Tabs defaultValue="timer" className="space-y-6">
-          <div className="sticky top-0 bg-background/80 backdrop-blur-sm z-10 py-2">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="timer" className="flex-col gap-1 h-16">
+          <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
+            <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
+              <TabsTrigger value="timer" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <Clock size={20} />
                 <span className="text-xs">Timer</span>
               </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex-col gap-1 h-16">
+              <TabsTrigger value="subjects" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <BookOpen size={20} />
                 <span className="text-xs">Subjects</span>
               </TabsTrigger>
-              <TabsTrigger value="stats" className="flex-col gap-1 h-16">
+              <TabsTrigger value="stats" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <ChartBar size={20} />
                 <span className="text-xs">Stats</span>
               </TabsTrigger>
-              <TabsTrigger value="achievements" className="flex-col gap-1 h-16">
+              <TabsTrigger value="achievements" className="flex-col gap-1 h-16 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                 <Trophy size={20} />
                 <span className="text-xs">Awards</span>
               </TabsTrigger>
@@ -148,69 +150,83 @@ function App() {
           </div>
 
           <TabsContent value="timer" className="space-y-4 m-0">
-            <TargetNotifications 
-              subjects={subjects}
-              sessions={sessions}
-              onSelectSubject={setSelectedSubject}
-            />
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <TargetNotifications 
+                subjects={subjects}
+                sessions={sessions}
+                onSelectSubject={setSelectedSubject}
+              />
+            </div>
             
             {!selectedSubject ? (
-              <div className="text-center py-8">
-                <BookOpen size={48} className="mx-auto text-muted-foreground mb-4" />
-                <h3 className="font-medium mb-2">Select a Subject First</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+              <div className="text-center py-8 bg-black/20 backdrop-blur-md rounded-lg border border-white/10">
+                <BookOpen size={48} className="mx-auto text-white/60 mb-4" />
+                <h3 className="font-medium mb-2 text-white">Select a Subject First</h3>
+                <p className="text-sm text-white/70 mb-4">
                   Choose a subject from the Subjects tab to start studying
                 </p>
               </div>
             ) : (
-              <Timer
-                subject={selectedSubject}
-                onSessionComplete={handleSessionComplete}
-                onSessionCancel={handleSessionCancel}
-              />
+              <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+                <Timer
+                  subject={selectedSubject}
+                  onSessionComplete={handleSessionComplete}
+                  onSessionCancel={handleSessionCancel}
+                />
+              </div>
             )}
           </TabsContent>
 
           <TabsContent value="subjects" className="space-y-4 m-0">
-            <SubjectManagement
-              subjects={subjects}
-              selectedSubject={selectedSubject}
-              onAddSubject={handleAddSubject}
-              onDeleteSubject={handleDeleteSubject}
-              onUpdateSubject={handleUpdateSubject}
-              onSelectSubject={setSelectedSubject}
-            />
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <SubjectManagement
+                subjects={subjects}
+                selectedSubject={selectedSubject}
+                onAddSubject={handleAddSubject}
+                onDeleteSubject={handleDeleteSubject}
+                onUpdateSubject={handleUpdateSubject}
+                onSelectSubject={setSelectedSubject}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4 m-0">
-            <TargetProgress subjects={subjects} sessions={sessions} />
-            <StatsOverview stats={stats} achievements={achievements} sessions={sessions} />
-            <ProgressCharts sessions={sessions} subjects={subjects} />
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <TargetProgress subjects={subjects} sessions={sessions} />
+            </div>
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <StatsOverview stats={stats} achievements={achievements} sessions={sessions} />
+            </div>
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <ProgressCharts sessions={sessions} subjects={subjects} />
+            </div>
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-4 m-0">
-            <Achievements achievements={achievements} />
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+              <Achievements achievements={achievements} />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
 
       <Dialog open={completionDialogOpen} onOpenChange={setCompletionDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white">
           <DialogHeader>
-            <DialogTitle className="text-center">🎉 Session Complete!</DialogTitle>
+            <DialogTitle className="text-center text-white">🎉 Session Complete!</DialogTitle>
           </DialogHeader>
           <div className="text-center space-y-4">
-            <div className="bg-accent/10 rounded-lg p-4">
+            <div className="bg-accent/20 rounded-lg p-4 border border-accent/30">
               <div className="text-2xl font-bold text-accent">
                 {lastSessionDuration} minutes
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-white/70">
                 Great focus on {selectedSubject?.name}!
               </div>
             </div>
             <Button 
               onClick={() => setCompletionDialogOpen(false)}
-              className="w-full"
+              className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30"
             >
               Continue Studying
             </Button>

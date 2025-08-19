@@ -18,7 +18,7 @@ import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { DeviceIndicator } from '@/components/DeviceIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
-import { HapticTestPanel } from '@/components/HapticTestPanel'
+
 import { InspirationCarousel } from '@/components/InspirationCarousel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
@@ -465,9 +465,6 @@ function App() {
         <header className="text-center py-6">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">StudyPartner</h1>
           <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
-          <div className="mt-3 flex justify-center">
-            <HapticTestPanel />
-          </div>
         </header>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">

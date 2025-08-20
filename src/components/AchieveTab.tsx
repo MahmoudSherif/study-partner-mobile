@@ -23,6 +23,7 @@ import {
 import { FocusSession, Goal, Achievement } from '@/lib/types'
 import { toast } from 'sonner'
 import { mobileFeedback } from '@/lib/mobileFeedback'
+import { notificationManager } from '@/lib/notifications'
 
 interface AchieveTabProps {
   achievements: Achievement[]
@@ -192,6 +193,13 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
             mobileFeedback.achievement()
             toast.success(`🎯 Goal completed: ${goal.title}!`)
             
+            // Send push notification for goal achievement
+            try {
+              await notificationManager.notifyGoalAchievement(goal.title, goal.description)
+            } catch (error) {
+              console.error('Failed to send goal achievement notification:', error)
+            }
+            
             // Check for goal achievement milestone
             const completedGoalsCount = goals.filter(g => g.isCompleted).length + 1 // +1 for this newly completed goal
             const goalAchieverAchievement = achievements.find(a => a.id === 'goal-achiever')
@@ -215,6 +223,16 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
                 description: goalAchieverAchievement.description,
                 duration: 5000
               })
+              
+              // Send push notification for achievement unlock
+              try {
+                await notificationManager.notifyAchievementUnlock(
+                  goalAchieverAchievement.title,
+                  goalAchieverAchievement.description
+                )
+              } catch (error) {
+                console.error('Failed to send achievement notification:', error)
+              }
             }
           }
 
@@ -268,6 +286,16 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
             description: achievement.description,
             duration: 5000
           })
+          
+          // Send push notification for achievement unlock
+          try {
+            notificationManager.notifyAchievementUnlock(
+              achievement.title,
+              achievement.description
+            )
+          } catch (error) {
+            console.error('Failed to send achievement notification:', error)
+          }
         }
         
         return {

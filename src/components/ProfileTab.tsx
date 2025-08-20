@@ -6,6 +6,7 @@ import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
 import { ActivityGrid } from '@/components/ActivityGrid'
+import { NotificationSettings } from '@/components/NotificationSettings'
 import { useKV } from '@github/spark/hooks'
 
 interface ProfileTabProps {
@@ -174,6 +175,9 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
           </CardContent>
         </Card>
       )}
+      
+      {/* Notification Settings */}
+      <NotificationSettings />
     </div>
   )
 }

@@ -26,6 +26,7 @@ import { useTouchGestures } from '@/hooks/useTouchGestures'
 import { usePWA } from '@/hooks/usePWA'
 import { useMobileBehavior } from '@/hooks/useDeviceDetection'
 import { mobileFeedback } from '@/lib/mobileFeedback'
+import { notificationManager, initializeNotifications } from '@/lib/notifications'
 import { 
   Clock, 
   ChartBar, 
@@ -49,6 +50,22 @@ function App() {
 }
 
 function AppContent() {
+  // Initialize notifications on app start
+  useEffect(() => {
+    const setupNotifications = async () => {
+      try {
+        const initialized = await initializeNotifications();
+        if (initialized) {
+          console.log('Notifications initialized successfully');
+        }
+      } catch (error) {
+        console.error('Failed to initialize notifications:', error);
+      }
+    };
+
+    setupNotifications();
+  }, []);
+
   // Global error handling with improved specificity
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -356,14 +373,25 @@ function AppContent() {
       
       if (newlyUnlocked.length > 0) {
         setAchievements(updatedAchievements)
-        newlyUnlocked.forEach(achievement => {
+        newlyUnlocked.forEach(async (achievement) => {
           // Trigger achievement haptic feedback
           mobileFeedback.achievement()
           
+          // Show in-app toast
           toast.success(`Achievement Unlocked: ${achievement.title}`, {
             description: achievement.description,
             duration: 5000
           })
+          
+          // Send push notification
+          try {
+            await notificationManager.notifyAchievementUnlock(
+              achievement.title,
+              achievement.description
+            )
+          } catch (error) {
+            console.error('Failed to send achievement notification:', error)
+          }
         })
       } else {
         setAchievements(updatedAchievements)
@@ -601,32 +629,62 @@ function AppContent() {
     setShowChallengeProgress(!showChallengeProgress)
   }
 
-  const handleEndChallenge = (challengeId: string, winnerId: string) => {
-    setChallenges(current => 
-      current.map(challenge => 
-        challenge.id === challengeId 
-          ? { ...challenge, isActive: false, winnerId }
-          : challenge
+  const handleEndChallenge = async (challengeId: string, winnerId: string) => {
+    try {
+      setChallenges(current => 
+        current.map(challenge => 
+          challenge.id === challengeId 
+            ? { ...challenge, isActive: false, winnerId }
+            : challenge
+        )
       )
-    )
-    
-    // Trigger achievement haptic feedback
-    mobileFeedback.achievement()
-    
-    const challenge = challenges.find(c => c.id === challengeId)
-    const isCurrentUserWinner = winnerId === currentUserId
-    
-    toast.success(
-      isCurrentUserWinner 
-        ? `🏆 Congratulations! You won "${challenge?.title}"!`
-        : `Challenge "${challenge?.title}" has ended!`,
-      {
-        description: isCurrentUserWinner 
-          ? 'You are the challenge champion!'
-          : `Winner: User ${winnerId.slice(-4)}`,
-        duration: 5000
+      
+      // Trigger achievement haptic feedback
+      mobileFeedback.achievement()
+      
+      const challenge = challenges.find(c => c.id === challengeId)
+      const isCurrentUserWinner = winnerId === currentUserId
+      
+      // Calculate winner's points
+      const winnerPoints = challenge?.tasks
+        .filter(task => task.completedBy.includes(winnerId))
+        .reduce((total, task) => total + task.points, 0) || 0
+      
+      // Show in-app toast
+      toast.success(
+        isCurrentUserWinner 
+          ? `🏆 Congratulations! You won "${challenge?.title}"!`
+          : `Challenge "${challenge?.title}" has ended!`,
+        {
+          description: isCurrentUserWinner 
+            ? 'You are the challenge champion!'
+            : `Winner: User ${winnerId.slice(-4)}`,
+          duration: 5000
+        }
+      )
+      
+      // Send push notifications
+      try {
+        if (isCurrentUserWinner) {
+          // Notify winner
+          await notificationManager.notifyChallengeWin(
+            challenge?.title || 'Challenge',
+            winnerPoints
+          )
+        } else {
+          // Notify other participants
+          await notificationManager.notifyChallengeComplete(
+            challenge?.title || 'Challenge',
+            `User ${winnerId.slice(-4)}`
+          )
+        }
+      } catch (error) {
+        console.error('Failed to send challenge notification:', error)
       }
-    )
+    } catch (error) {
+      console.error('Error ending challenge:', error)
+      toast.error('Failed to end challenge. Please try again.')
+    }
   }
 
   return (

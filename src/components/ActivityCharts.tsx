@@ -47,8 +47,54 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
     return weeks
   }, [sessions])
 
-  // Calculate daily activity data (last 24 hours)
+  // Calculate daily activity data (last 7 days)
   const dailyData = useMemo(() => {
+    const now = new Date()
+    const days = []
+    
+    for (let i = 6; i >= 0; i--) {
+      const dayDate = new Date(now)
+      dayDate.setDate(dayDate.getDate() - i)
+      
+      const dayStart = new Date(dayDate)
+      dayStart.setHours(0, 0, 0, 0)
+      
+      const dayEnd = new Date(dayDate)
+      dayEnd.setHours(23, 59, 59, 999)
+      
+      const daySessions = sessions.filter(session => {
+        const sessionDate = new Date(session.startTime)
+        return sessionDate >= dayStart && sessionDate <= dayEnd
+      })
+      
+      const totalMinutes = daySessions.reduce((sum, session) => sum + session.duration, 0)
+      const sessionCount = daySessions.length
+      
+      // Calculate relative height (0-100 scale)
+      const maxHeight = 100
+      const height = Math.min(maxHeight, Math.max(8, (totalMinutes / 60) * 15)) // Scale based on hours
+      
+      // Format day display
+      const dayName = dayDate.toLocaleDateString('en', { weekday: 'short' })
+      const dayShort = dayName.substring(0, 2)
+      const isToday = i === 0
+      
+      days.push({
+        date: dayDate,
+        label: isToday ? 'Today' : dayName,
+        shortLabel: isToday ? 'Td' : dayShort,
+        minutes: totalMinutes,
+        sessions: sessionCount,
+        height,
+        isToday
+      })
+    }
+    
+    return days
+  }, [sessions])
+
+  // Calculate hourly activity data (today's 24 hours)
+  const hourlyData = useMemo(() => {
     const now = new Date()
     const hours = []
     
@@ -164,26 +210,96 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="daily" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-white/10 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
             <TabsTrigger value="daily" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <Clock size={16} className="mr-1" />
-              Daily
+              <Calendar size={14} className="mr-1" />
+              7 Days
+            </TabsTrigger>
+            <TabsTrigger value="hourly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <Clock size={14} className="mr-1" />
+              Today
             </TabsTrigger>
             <TabsTrigger value="weekly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <Calendar size={16} className="mr-1" />
+              <Calendar size={14} className="mr-1" />
               Weekly
             </TabsTrigger>
             <TabsTrigger value="monthly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <TrendingUp size={16} className="mr-1" />
+              <TrendingUp size={14} className="mr-1" />
               Monthly
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="daily" className="space-y-4 mt-4">
             <div className="space-y-3">
+              <h4 className="text-sm font-medium text-white">Daily Activity (Last 7 days)</h4>
+              <div className="flex items-end justify-between gap-2 h-32 bg-black/20 rounded-lg p-4">
+                {dailyData.map((day, index) => (
+                  <div key={index} className="flex flex-col items-center gap-2 flex-1">
+                    <div 
+                      className={`w-full bg-gradient-to-t rounded-t-sm transition-all duration-300 cursor-pointer relative group ${
+                        day.isToday 
+                          ? 'from-accent to-accent/60 hover:from-accent/80 hover:to-accent/40' 
+                          : 'from-primary to-primary/60 hover:from-primary/80 hover:to-primary/40'
+                      }`}
+                      style={{ height: `${day.height}%` }}
+                      title={`${day.label}: ${formatTime(day.minutes)} (${day.sessions} sessions)`}
+                    >
+                      {/* Tooltip content - shown on hover */}
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        {formatTime(day.minutes)}
+                      </div>
+                    </div>
+                    <div className={`text-xs text-center ${day.isToday ? 'text-accent font-medium' : 'text-white/70'}`}>
+                      {day.shortLabel}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Daily Summary */}
+              <div className="grid grid-cols-3 gap-3 text-xs">
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">This Week</div>
+                  <div className="text-white font-medium">
+                    {formatTime(dailyData.reduce((sum, day) => sum + day.minutes, 0))}
+                  </div>
+                  <div className="text-white/50">
+                    {dailyData.reduce((sum, day) => sum + day.sessions, 0)} sessions
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Best Day</div>
+                  <div className="text-white font-medium">
+                    {(() => {
+                      const bestDay = dailyData.reduce((max, day) => day.minutes > max.minutes ? day : max, dailyData[0])
+                      return bestDay.minutes > 0 ? bestDay.label : 'N/A'
+                    })()}
+                  </div>
+                  <div className="text-white/50">
+                    {(() => {
+                      const bestDay = dailyData.reduce((max, day) => day.minutes > max.minutes ? day : max, dailyData[0])
+                      return bestDay.minutes > 0 ? formatTime(bestDay.minutes) : '0m'
+                    })()}
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Daily Average</div>
+                  <div className="text-white font-medium">
+                    {formatTime(Math.round(dailyData.reduce((sum, day) => sum + day.minutes, 0) / 7))}
+                  </div>
+                  <div className="text-white/50">
+                    {Math.round(dailyData.reduce((sum, day) => sum + day.sessions, 0) / 7)} sessions
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="hourly" className="space-y-4 mt-4">
+            <div className="space-y-3">
               <h4 className="text-sm font-medium text-white">Today's Activity (24 hours)</h4>
               <div className="flex items-end justify-between gap-1 h-32 bg-black/20 rounded-lg p-3 overflow-x-auto">
-                {dailyData.map((hour, index) => (
+                {hourlyData.map((hour, index) => (
                   <div key={index} className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
                     <div 
                       className="w-3 bg-gradient-to-t from-accent to-accent/60 rounded-t-sm transition-all duration-300 hover:from-accent/80 hover:to-accent/40 cursor-pointer relative group"
@@ -202,28 +318,28 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
                 ))}
               </div>
               
-              {/* Daily Summary */}
+              {/* Hourly Summary */}
               <div className="grid grid-cols-3 gap-3 text-xs">
                 <div className="bg-black/20 rounded-lg p-3">
                   <div className="text-white/70">Total Today</div>
                   <div className="text-white font-medium">
-                    {formatTime(dailyData.reduce((sum, hour) => sum + hour.minutes, 0))}
+                    {formatTime(hourlyData.reduce((sum, hour) => sum + hour.minutes, 0))}
                   </div>
                   <div className="text-white/50">
-                    {dailyData.reduce((sum, hour) => sum + hour.sessions, 0)} sessions
+                    {hourlyData.reduce((sum, hour) => sum + hour.sessions, 0)} sessions
                   </div>
                 </div>
                 <div className="bg-black/20 rounded-lg p-3">
                   <div className="text-white/70">Peak Hour</div>
                   <div className="text-white font-medium">
                     {(() => {
-                      const peakHour = dailyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, dailyData[0])
+                      const peakHour = hourlyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, hourlyData[0])
                       return peakHour.minutes > 0 ? peakHour.label : 'N/A'
                     })()}
                   </div>
                   <div className="text-white/50">
                     {(() => {
-                      const peakHour = dailyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, dailyData[0])
+                      const peakHour = hourlyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, hourlyData[0])
                       return peakHour.minutes > 0 ? formatTime(peakHour.minutes) : '0m'
                     })()}
                   </div>
@@ -231,7 +347,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
                 <div className="bg-black/20 rounded-lg p-3">
                   <div className="text-white/70">Active Hours</div>
                   <div className="text-white font-medium">
-                    {dailyData.filter(hour => hour.minutes > 0).length}
+                    {hourlyData.filter(hour => hour.minutes > 0).length}
                   </div>
                   <div className="text-white/50">
                     of 24 hours

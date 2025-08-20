@@ -63,7 +63,6 @@ export class FirestoreService {
       return { error: error.message }
     }
   }
-  }
 
   async createUserProfile(userId: string, data: any) {
     try {

@@ -113,18 +113,30 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   const stopSession = () => {
     if (!currentSession) return
 
+    const sessionMinutes = Math.floor(currentTime / 60)
     const completedSession: FocusSession = {
       ...currentSession,
-      duration: Math.floor(currentTime / 60), // convert to minutes
+      duration: sessionMinutes, // store in minutes
       endTime: new Date(),
       completed: true
     }
 
+    console.log('Saving focus session:', {
+      title: completedSession.title,
+      duration: completedSession.duration,
+      startTime: completedSession.startTime,
+      endTime: completedSession.endTime,
+      currentTime: currentTime
+    })
+
     // Save session
-    setFocusSessions(current => [...current, completedSession])
+    setFocusSessions(current => {
+      const updated = [...current, completedSession]
+      console.log('Updated focus sessions:', updated)
+      return updated
+    })
     
     // Update goals progress
-    const sessionMinutes = Math.floor(currentTime / 60)
     updateGoalsProgress(sessionMinutes)
 
     // Reset timer state
@@ -345,6 +357,35 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
               >
                 <Play size={16} className="mr-2" />
                 Start Focus Session
+              </Button>
+              
+              {/* Quick Test Button for 1-minute session */}
+              <Button 
+                onClick={() => {
+                  // Auto-start and complete a 1-minute session for testing
+                  const testSession: FocusSession = {
+                    id: Date.now().toString(),
+                    title: 'Test Focus Session - 1 minute',
+                    duration: 1, // 1 minute
+                    startTime: new Date(),
+                    endTime: new Date(),
+                    completed: true,
+                    category: 'test'
+                  }
+                  
+                  setFocusSessions(current => {
+                    const updated = [...current, testSession]
+                    console.log('Added test focus session:', testSession)
+                    console.log('All focus sessions now:', updated)
+                    return updated
+                  })
+                  
+                  toast.success('Test 1-minute focus session added! Check your Profile > Activity tab.')
+                }}
+                variant="outline"
+                className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border-blue-500/30"
+              >
+                🧪 Add Test 1-min Session
               </Button>
             </div>
           ) : (

@@ -33,6 +33,12 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
     } as StudySession))
   ]
   
+  // Debug: Log focus sessions
+  if (focusSessions.length > 0) {
+    console.log('ProfileTab: Focus sessions found:', focusSessions.length, focusSessions)
+    console.log('ProfileTab: All activity sessions:', allActivitySessions.length, allActivitySessions)
+  }
+  
   // Calculate weekly progress using all activity sessions
   const weeklyData = getWeeklyData(allActivitySessions)
   const thisWeekMinutes = weeklyData[weeklyData.length - 1]?.minutes || 0

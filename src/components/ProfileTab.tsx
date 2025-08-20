@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Target, Clock, Flame, Calendar, TrendingUp } from '@phosphor-icons/react'
+import { Button } from '@/components/ui/button'
+import { Trophy, Target, Clock, Flame, Calendar, TrendingUp, SignOut, User as UserIcon } from '@phosphor-icons/react'
 import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
@@ -9,6 +10,8 @@ import { ActivityGrid } from '@/components/ActivityGrid'
 import { ActivityCharts } from '@/components/ActivityCharts'
 import { NotificationSettings } from '@/components/NotificationSettings'
 import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/contexts/AuthContext'
+import { toast } from 'sonner'
 
 interface ProfileTabProps {
   stats: UserStats
@@ -18,6 +21,16 @@ interface ProfileTabProps {
 
 export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabProps) {
   const [focusSessions] = useKV<FocusSession[]>('focus-sessions', [])
+  const { user, signOut } = useAuth()
+  
+  const handleSignOut = async () => {
+    const { error } = await signOut()
+    if (error) {
+      toast.error('Failed to sign out')
+    } else {
+      toast.success('Signed out successfully')
+    }
+  }
   
   const unlockedAchievements = achievements.filter(a => a.unlocked)
   const nextAchievement = achievements.find(a => !a.unlocked && a.progress > 0)
@@ -55,6 +68,45 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
 
   return (
     <div className="space-y-4">
+      {/* User Profile Card */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base text-white">Profile</CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+                {user?.photoURL ? (
+                  <img 
+                    src={user.photoURL} 
+                    alt="Profile" 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <UserIcon size={24} className="text-primary" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-medium text-white">
+                  {user?.displayName || user?.email?.split('@')[0] || 'User'}
+                </h3>
+                <p className="text-sm text-white/70">{user?.email}</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleSignOut}
+              variant="outline"
+              size="sm"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+            >
+              <SignOut size={16} className="mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Activity Grid - GitHub-style contribution calendar */}
       <Card>
         <CardHeader className="pb-3">

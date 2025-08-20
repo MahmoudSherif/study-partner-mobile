@@ -2,38 +2,60 @@
 
 ## Core Purpose & Success
 
-**Mission Statement**: StudyPartner is a mobile-first study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with an integrated notes system.
+# StudyPartner - Mobile Study Companion PRD
+
+## Core Purpose & Success
+
+**Mission Statement**: StudyPartner is a mobile-first, cloud-synced study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with user authentication and seamless data synchronization.
 
 **Success Indicators**: 
-- Users consistently track focus sessions and achieve daily/weekly goals
-- Task completion rates improve through gamification and challenges
-- Notes system enhances knowledge retention and organization
-- Achievement system motivates continued usage and goal achievement
+- Users consistently track focus sessions and achieve daily/weekly goals across devices
+- Task completion rates improve through gamification and challenges with persistent user accounts
+- Authentication enables secure data storage and cross-device synchronization
+- Achievement system motivates continued usage with personalized user profiles
+- Cloud sync ensures data continuity and reliability across sessions
 
-**Experience Qualities**: Motivating, Organized, Achievement-Focused
+**Experience Qualities**: Secure, Motivating, Organized, Achievement-Focused
 
 ## Project Classification & Approach
 
-**Complexity Level**: Light Application (multiple features with persistent state management)
+**Complexity Level**: Complex Application (advanced functionality with user accounts, authentication, and cloud synchronization)
 
-**Primary User Activity**: Creating (focus sessions, notes) and Achieving (goals, tasks, milestones)
+**Primary User Activity**: Creating (user accounts, focus sessions, notes) and Achieving (goals, tasks, milestones) with persistent user identity
 
 ## Thought Process for Feature Selection
 
-**Core Problem Analysis**: Students need a unified platform to focus on work, track achievements, manage tasks, and organize thoughts while staying motivated through goal-setting and progress visualization.
+**Core Problem Analysis**: Students need a unified, secure platform to focus on work, track achievements, manage tasks, and organize thoughts while maintaining data across devices through authenticated cloud storage.
 
-**User Context**: Students use this app during focus sessions on mobile devices, checking progress between work periods, managing tasks, organizing notes, and reviewing achievements to maintain motivation.
+**User Context**: Students sign up for personalized accounts, use the app during focus sessions on mobile devices, check progress between work periods, manage tasks, organize notes, and review achievements while data stays synchronized across all their devices.
 
 **Critical Path**: 
-1. Set goals and start focus sessions → 2. Complete tasks and take notes → 3. Track progress and unlock achievements
+1. Sign up/Login → 2. Set goals and start focus sessions → 3. Complete tasks and take notes → 4. Track progress and unlock achievements → 5. Data syncs across devices
 
 **Key Moments**: 
+- Account creation (onboarding and trust building)
+- First successful login (security and continuity)
+- Data sync confirmation (reliability feeling)
 - Focus session completion (achievement feeling)
 - Goal milestone reached (satisfaction boost)
-- Task completion (productivity feeling)
-- Notes organization (knowledge retention)
+- Cross-device continuity (seamless experience)
 
 ## Essential Features
+
+### User Authentication System
+- **What it does**: Secure email/password and Google OAuth login with user profile management
+- **Why it matters**: Enables personalized experience, data security, and cross-device synchronization
+- **Success criteria**: Users can create accounts, sign in reliably, and maintain secure sessions
+
+### Cloud Data Synchronization
+- **What it does**: Real-time sync of all user data (goals, sessions, tasks, notes, achievements) across devices
+- **Why it matters**: Ensures data continuity and enables multi-device usage patterns
+- **Success criteria**: Data syncs reliably, conflicts resolve gracefully, offline support with sync when online
+
+### User Profile Management
+- **What it does**: Displays user information, authentication status, and provides sign-out functionality
+- **Why it matters**: Gives users control over their account and clear understanding of their data ownership
+- **Success criteria**: Profile displays correctly, sign-out works reliably, user has clear account management
 
 ### Integrated Achieve Tab
 - **What it does**: Combines goal-setting, focus timer, and achievement tracking in one unified interface
@@ -103,17 +125,45 @@
 
 ### UI Elements & Component Selection
 **Component Usage**: 
-- Cards for grouping achievement-related information
-- Tabs for main navigation (Achieve, Tasks, Calendar, Notes, Stats, Achievements, Inspiration)
+- Cards for grouping achievement-related information and user profile display
+- Tabs for main navigation (Achieve, Tasks, Calendar, Notes, Profile, Achievements, Inspiration)
+- Authentication forms with secure input fields and OAuth integration
 - Dialogs for goal creation and note editing
-- Progress bars for goal tracking
+- Progress bars for goal tracking and sync status
 - Drag-and-drop for notes organization
+- Real-time sync indicators for data status
 
 **Component Customization**: Rounded corners (0.75rem radius) and glassmorphic effects for modern appeal
-**Icon Selection**: Phosphor icons - Target, Clock, CheckSquare, StickyNote, Trophy
-**Mobile Adaptation**: Touch-friendly sizing with intuitive gesture support
+**Icon Selection**: Phosphor icons - Target, Clock, CheckSquare, StickyNote, Trophy, User, SignOut, CloudCheck
+**Mobile Adaptation**: Touch-friendly sizing with intuitive gesture support and secure authentication flows
+
+### Authentication & Security Design
+**Visual Identity**: Clean, trustworthy authentication screens that build user confidence
+**Sign-in Flow**: Tabbed interface (Sign In / Sign Up) with clear form validation and helpful error messages
+**OAuth Integration**: Prominent Google sign-in option with recognizable branding
+**Security Indicators**: Password visibility toggles, clear error states, and loading indicators
+**Profile Integration**: User avatar display, display name handling, and graceful sign-out flow
 
 ## New Features Implementation
+
+### User Authentication System
+1. **Multi-Provider Auth**: Email/password and Google OAuth with unified user experience
+2. **Secure Storage**: Firebase Authentication with automatic token management
+3. **Profile Management**: User display name, email, avatar with update capabilities
+4. **Session Management**: Persistent login state with secure sign-out functionality
+
+### Cloud Data Synchronization
+1. **Real-time Sync**: Firestore integration with live data updates across devices
+2. **Conflict Resolution**: Last-write-wins strategy with timestamp-based resolution
+3. **Offline Support**: Local storage fallback with sync when connection restored
+4. **Sync Indicators**: Visual feedback showing data sync status and last sync time
+5. **Manual Sync**: User-initiated sync capability for immediate data updates
+
+### Enhanced Security & Privacy
+1. **Data Isolation**: User-specific data storage with Firestore security rules
+2. **Secure Authentication**: Firebase Auth with industry-standard security practices
+3. **Privacy Controls**: User-owned data with clear sign-out and data management
+4. **Cross-device Continuity**: Seamless experience across multiple devices and browsers
 
 ### Achieve Tab Integration
 1. **Unified Goal Interface**: Combined goal setting with focus timer in single tab
@@ -138,9 +188,9 @@
 ## Implementation Considerations
 
 **Scalability Needs**: Note positioning performance with large numbers of notes
-**Testing Focus**: Touch gesture accuracy and note persistence across sessions
-**Critical Questions**: How to balance feature richness with mobile performance?
+**Testing Focus**: Authentication flow reliability, cross-device data sync accuracy, and touch gesture accuracy with secure user sessions
+**Critical Questions**: How to balance feature richness with mobile performance while maintaining data security and privacy?
 
 ## Reflection
 
-This approach transforms the app from a simple study tracker into a comprehensive achievement platform that combines focused work sessions, goal management, task completion, and knowledge organization. The integration of the achieve tab creates a clear focus on accomplishment while the notes system adds essential organization capabilities. The result is a motivating, comprehensive productivity companion that helps users achieve their goals through structured focus and organized thinking.
+This approach transforms the app from a simple study tracker into a comprehensive, secure achievement platform that combines user authentication, cloud synchronization, focused work sessions, goal management, task completion, and knowledge organization. The addition of Firebase authentication and real-time data sync creates a reliable, multi-device experience while the integration of the achieve tab maintains clear focus on accomplishment. The result is a trustworthy, motivating, comprehensive productivity companion that helps users achieve their goals through structured focus, organized thinking, and seamless cross-device continuity with secure data management.

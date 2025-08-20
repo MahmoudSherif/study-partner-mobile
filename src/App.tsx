@@ -14,6 +14,9 @@ import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AchieveTab } from '@/components/AchieveTab'
 import { NotesTab } from '@/components/NotesTab'
+import { AuthScreen } from '@/components/AuthScreen'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { SyncIndicator } from '@/components/SyncIndicator'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
@@ -41,12 +44,34 @@ import { toast, Toaster } from 'sonner'
 function App() {
   return (
     <ErrorBoundary>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ErrorBoundary>
   )
 }
 
 function AppContent() {
+  const { user, loading } = useAuth()
+  
+  // Show loading screen while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <SpaceBackground />
+        <div className="relative z-10 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-white/80">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show auth screen if user is not logged in
+  if (!user) {
+    return <AuthScreen />
+  }
+  
   // Initialize notifications on app start
   useEffect(() => {
     const setupNotifications = async () => {
@@ -146,8 +171,8 @@ function AppContent() {
   const { isStandalone } = usePWA()
   const deviceInfo = useMobileBehavior()
   
-  // Get current user ID (mock for now)
-  const currentUserId = 'user-1'
+  // Get current user ID from Firebase Auth
+  const currentUserId = user?.uid || 'anonymous'
 
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
@@ -686,6 +711,7 @@ function AppContent() {
     <div className="min-h-screen relative" ref={containerRef}>
       <SpaceBackground />
       <OfflineIndicator />
+      <SyncIndicator />
       {!isStandalone && <PWAInstallPrompt />}
       
       <div className="relative z-10 container max-w-md mx-auto p-4 pb-28 no-select">

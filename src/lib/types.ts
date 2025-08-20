@@ -99,6 +99,8 @@ export interface Challenge {
   tasks: ChallengeTask[]
   isActive: boolean
   endDate?: Date
+  maxPoints?: number // Total points available in the challenge
+  winnerId?: string // ID of the winner (set when challenge ends)
 }
 
 export interface ChallengeTask {
@@ -124,6 +126,17 @@ export interface TaskProgress {
     percentage: number
     userRank: number
     totalParticipants: number
+    userPoints: number // Points earned by current user
+    maxPoints: number // Maximum points available
+    pointsPercentage: number // Percentage based on points
+    leaderboard: Array<{
+      userId: string
+      points: number
+      tasksCompleted: number
+      rank: number
+    }>
+    isCompleted: boolean // Whether challenge has ended
+    winnerId?: string // Winner of the challenge
   }
 }
 

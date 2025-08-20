@@ -238,28 +238,58 @@ function AppContent() {
 
     let challengeProgress = undefined
     if (activeChallenge && showChallengeProgress) {
+      // Calculate user points and task completion
       const userCompletedTasks = activeChallenge.tasks.filter(task => 
         task.completedBy.includes(currentUserId)
-      ).length
+      )
+      const userPoints = userCompletedTasks.reduce((total, task) => total + task.points, 0)
+      const maxPoints = activeChallenge.tasks.reduce((total, task) => total + task.points, 0)
       
-      // Calculate user rank
-      const participantScores = activeChallenge.participants.map(participantId => {
-        return activeChallenge.tasks.filter(task => 
+      // Calculate leaderboard with points
+      const leaderboard = activeChallenge.participants.map(participantId => {
+        const completedTasks = activeChallenge.tasks.filter(task => 
           task.completedBy.includes(participantId)
-        ).length
-      }).sort((a, b) => b - a)
+        )
+        const points = completedTasks.reduce((total, task) => total + task.points, 0)
+        return {
+          userId: participantId,
+          points,
+          tasksCompleted: completedTasks.length,
+          rank: 0 // Will be calculated after sorting
+        }
+      }).sort((a, b) => b.points - a.points) // Sort by points descending
       
-      const userScore = userCompletedTasks
-      const userRank = participantScores.findIndex(score => score === userScore) + 1
+      // Assign ranks (handle ties)
+      leaderboard.forEach((participant, index) => {
+        if (index === 0) {
+          participant.rank = 1
+        } else if (participant.points === leaderboard[index - 1].points) {
+          participant.rank = leaderboard[index - 1].rank // Same rank for tied scores
+        } else {
+          participant.rank = index + 1
+        }
+      })
+      
+      const userRank = leaderboard.find(p => p.userId === currentUserId)?.rank || 1
+      
+      // Check if challenge is completed (ended)
+      const isCompleted = activeChallenge.endDate ? new Date() > new Date(activeChallenge.endDate) : false
+      const winnerId = isCompleted && leaderboard.length > 0 ? leaderboard[0].userId : undefined
 
       challengeProgress = {
         challengeId: activeChallenge.id,
         challengeTitle: activeChallenge.title,
         totalTasks: activeChallenge.tasks.length,
-        completedTasks: userCompletedTasks,
-        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks / activeChallenge.tasks.length) * 100 : 0,
+        completedTasks: userCompletedTasks.length,
+        percentage: activeChallenge.tasks.length > 0 ? (userCompletedTasks.length / activeChallenge.tasks.length) * 100 : 0,
         userRank,
-        totalParticipants: activeChallenge.participants.length
+        totalParticipants: activeChallenge.participants.length,
+        userPoints,
+        maxPoints,
+        pointsPercentage: maxPoints > 0 ? (userPoints / maxPoints) * 100 : 0,
+        leaderboard,
+        isCompleted,
+        winnerId
       }
     }
 
@@ -279,7 +309,7 @@ function AppContent() {
   useEffect(() => {
     try {
       const dailyPercentage = taskProgress.dailyTasks.percentage
-      const challengePercentage = taskProgress.challengeProgress?.percentage || 0
+      const challengePointsPercentage = taskProgress.challengeProgress?.pointsPercentage || 0
 
       // Check daily task milestones (25%, 50%, 75%, 100%)
       const dailyMilestones = [25, 50, 75, 100]
@@ -294,26 +324,26 @@ function AppContent() {
         })
       }
 
-      // Check challenge milestones
+      // Check challenge milestones (based on points percentage)
       const challengeMilestones = [25, 50, 75, 100]
       const reachedChallengeMilestone = challengeMilestones.find(milestone => 
-        challengePercentage >= milestone && previousChallengeProgress < milestone
+        challengePointsPercentage >= milestone && previousChallengeProgress < milestone
       )
 
-      if (reachedChallengeMilestone && challengePercentage > 0 && taskProgress.challengeProgress) {
+      if (reachedChallengeMilestone && challengePointsPercentage > 0 && taskProgress.challengeProgress) {
         mobileFeedback.progressMilestone()
         toast.success(`Challenge Progress: ${reachedChallengeMilestone}% complete! 🏆`, {
-          description: `${taskProgress.challengeProgress.completedTasks}/${taskProgress.challengeProgress.totalTasks} tasks in ${taskProgress.challengeProgress.challengeTitle}`,
+          description: `${taskProgress.challengeProgress.userPoints}/${taskProgress.challengeProgress.maxPoints} points in ${taskProgress.challengeProgress.challengeTitle}`,
         })
       }
 
       setPreviousDailyProgress(dailyPercentage)
-      setPreviousChallengeProgress(challengePercentage)
+      setPreviousChallengeProgress(challengePointsPercentage)
     } catch (error) {
       console.error('Error checking progress milestones:', error)
       // Don't show user error for milestone tracking
     }
-  }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.percentage])
+  }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.pointsPercentage])
 
   useEffect(() => {
     try {
@@ -571,6 +601,34 @@ function AppContent() {
     setShowChallengeProgress(!showChallengeProgress)
   }
 
+  const handleEndChallenge = (challengeId: string, winnerId: string) => {
+    setChallenges(current => 
+      current.map(challenge => 
+        challenge.id === challengeId 
+          ? { ...challenge, isActive: false, winnerId }
+          : challenge
+      )
+    )
+    
+    // Trigger achievement haptic feedback
+    mobileFeedback.achievement()
+    
+    const challenge = challenges.find(c => c.id === challengeId)
+    const isCurrentUserWinner = winnerId === currentUserId
+    
+    toast.success(
+      isCurrentUserWinner 
+        ? `🏆 Congratulations! You won "${challenge?.title}"!`
+        : `Challenge "${challenge?.title}" has ended!`,
+      {
+        description: isCurrentUserWinner 
+          ? 'You are the challenge champion!'
+          : `Winner: User ${winnerId.slice(-4)}`,
+        duration: 5000
+      }
+    )
+  }
+
   return (
     <div className="min-h-screen relative" ref={containerRef}>
       <SpaceBackground />
@@ -642,6 +700,7 @@ function AppContent() {
                 onAddChallengeTask={handleAddChallengeTask}
                 onToggleChallengeTask={handleToggleChallengeTask}
                 onSwitchProgressView={handleSwitchProgressView}
+                onEndChallenge={handleEndChallenge}
               />
             </div>
           </TabsContent>

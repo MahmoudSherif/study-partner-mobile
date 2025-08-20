@@ -38,6 +38,7 @@ interface TasksManagementProps {
   onAddChallengeTask: (challengeId: string, task: Omit<import('@/lib/types').ChallengeTask, 'id' | 'createdAt' | 'completedBy'>) => void
   onToggleChallengeTask: (challengeId: string, taskId: string) => void
   onSwitchProgressView: () => void
+  onEndChallenge?: (challengeId: string, winnerId: string) => void
 }
 
 export function TasksManagement({
@@ -53,7 +54,8 @@ export function TasksManagement({
   onJoinChallenge,
   onAddChallengeTask,
   onToggleChallengeTask,
-  onSwitchProgressView
+  onSwitchProgressView,
+  onEndChallenge
 }: TasksManagementProps) {
   const [isAddingTask, setIsAddingTask] = useState(false)
   const [isCreatingChallenge, setIsCreatingChallenge] = useState(false)
@@ -183,6 +185,13 @@ export function TasksManagement({
     toast.success('Challenge code copied to clipboard!')
   }
 
+  const handleEndChallenge = (challengeId: string, winnerId: string) => {
+    if (onEndChallenge) {
+      onEndChallenge(challengeId, winnerId)
+      toast.success('Challenge ended! Winner declared! 🏆')
+    }
+  }
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high': return 'bg-red-500/20 text-red-300 border-red-500/30'
@@ -232,16 +241,57 @@ export function TasksManagement({
           
           {taskProgress.challengeProgress && (
             <>
-              <div className="flex items-center justify-between mt-4">
-                <span className="text-white/80">{taskProgress.challengeProgress.challengeTitle}</span>
-                <span className="text-white font-medium">
-                  #{taskProgress.challengeProgress.userRank}/{taskProgress.challengeProgress.totalParticipants}
-                </span>
+              <div className="border-t border-white/20 pt-3 mt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white/80">{taskProgress.challengeProgress.challengeTitle}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-medium">
+                      #{taskProgress.challengeProgress.userRank}/{taskProgress.challengeProgress.totalParticipants}
+                    </span>
+                    {taskProgress.challengeProgress.isCompleted && taskProgress.challengeProgress.winnerId === currentUserId && (
+                      <Badge className="bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
+                        <Trophy size={12} className="mr-1" />
+                        Winner!
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Points Progress */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-white/60">Points</span>
+                  <span className="text-sm text-white font-medium">
+                    {taskProgress.challengeProgress.userPoints}/{taskProgress.challengeProgress.maxPoints}
+                  </span>
+                </div>
+                <Progress 
+                  value={taskProgress.challengeProgress.pointsPercentage} 
+                  className="h-2 bg-white/20 mb-3"
+                />
+                
+                {/* Mini Leaderboard */}
+                <div className="space-y-1">
+                  <div className="text-xs text-white/60 mb-2">Leaderboard (Top 3)</div>
+                  {taskProgress.challengeProgress.leaderboard.slice(0, 3).map((participant, index) => (
+                    <div key={participant.userId} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-xs ${
+                          index === 0 ? 'bg-yellow-500 text-black' :
+                          index === 1 ? 'bg-gray-400 text-black' :
+                          index === 2 ? 'bg-amber-600 text-white' :
+                          'bg-white/20 text-white'
+                        }`}>
+                          {participant.rank}
+                        </span>
+                        <span className={`${participant.userId === currentUserId ? 'text-white font-medium' : 'text-white/70'}`}>
+                          {participant.userId === currentUserId ? 'You' : `User ${participant.userId.slice(-4)}`}
+                        </span>
+                      </div>
+                      <span className="text-white/80">{participant.points} pts</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <Progress 
-                value={taskProgress.challengeProgress.percentage} 
-                className="h-2 bg-white/20"
-              />
             </>
           )}
         </div>
@@ -519,24 +569,61 @@ export function TasksManagement({
                 <p>No challenges yet. Create or join one to get started!</p>
               </div>
             ) : (
-              challenges.map((challenge) => (
+              challenges.map((challenge) => {
+                // Calculate challenge stats
+                const totalPoints = challenge.tasks.reduce((sum, task) => sum + task.points, 0)
+                const leaderboard = challenge.participants.map(participantId => {
+                  const completedTasks = challenge.tasks.filter(task => 
+                    task.completedBy.includes(participantId)
+                  )
+                  const points = completedTasks.reduce((total, task) => total + task.points, 0)
+                  return {
+                    userId: participantId,
+                    points,
+                    tasksCompleted: completedTasks.length
+                  }
+                }).sort((a, b) => b.points - a.points)
+                
+                const isEnded = challenge.endDate ? new Date() > new Date(challenge.endDate) : false
+                const winner = leaderboard.length > 0 ? leaderboard[0] : null
+                
+                return (
                 <div key={challenge.id} className="bg-white/10 rounded-lg p-4 border border-white/20">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-semibold text-white flex items-center gap-2">
                           <Trophy size={16} />
                           {challenge.title}
+                          {isEnded && (
+                            <Badge className="bg-green-500/20 text-green-300 border-green-500/30 ml-2">
+                              Completed
+                            </Badge>
+                          )}
                         </h4>
                         <p className="text-sm text-white/70 mt-1">{challenge.description}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-white/60">
                           <span>{challenge.participants.length} participants</span>
+                          <span>{totalPoints} total points</span>
                           {challenge.endDate && (
-                            <span>Ends: {new Date(challenge.endDate).toLocaleDateString()}</span>
+                            <span>
+                              {isEnded ? 'Ended' : 'Ends'}: {new Date(challenge.endDate).toLocaleDateString()}
+                            </span>
                           )}
                         </div>
+                        
+                        {/* Winner Display */}
+                        {isEnded && winner && (
+                          <div className="mt-2 p-2 bg-yellow-500/20 rounded border border-yellow-500/30">
+                            <span className="text-yellow-300 text-sm font-medium">
+                              🏆 Winner: {winner.userId === currentUserId ? 'You!' : `User ${winner.userId.slice(-4)}`} 
+                              ({winner.points} points)
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      
+                      <div className="flex flex-col items-end gap-2">
                         <Button
                           size="sm"
                           variant="outline"
@@ -546,14 +633,61 @@ export function TasksManagement({
                           <Copy size={12} className="mr-1" />
                           {challenge.code}
                         </Button>
+                        
+                        {/* End Challenge Button */}
+                        {challenge.createdBy === currentUserId && !isEnded && winner && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleEndChallenge(challenge.id, winner.userId)}
+                            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                          >
+                            <Trophy size={12} className="mr-1" />
+                            End & Declare Winner
+                          </Button>
+                        )}
                       </div>
                     </div>
+
+                    {/* Leaderboard */}
+                    {leaderboard.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-white">Leaderboard</span>
+                          <span className="text-xs text-white/60">Points / Tasks</span>
+                        </div>
+                        <div className="bg-white/5 rounded p-3 space-y-2">
+                          {leaderboard.map((participant, index) => (
+                            <div key={participant.userId} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                  index === 0 ? 'bg-yellow-500 text-black' :
+                                  index === 1 ? 'bg-gray-400 text-black' :
+                                  index === 2 ? 'bg-amber-600 text-white' :
+                                  'bg-white/20 text-white'
+                                }`}>
+                                  {index + 1}
+                                </span>
+                                <span className={`text-sm ${participant.userId === currentUserId ? 'text-white font-medium' : 'text-white/70'}`}>
+                                  {participant.userId === currentUserId ? 'You' : `User ${participant.userId.slice(-4)}`}
+                                </span>
+                                {index === 0 && isEnded && (
+                                  <Trophy size={14} className="text-yellow-400" />
+                                )}
+                              </div>
+                              <span className="text-sm text-white/80">
+                                {participant.points} pts / {participant.tasksCompleted} tasks
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Challenge Tasks */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-white">Tasks</span>
-                        {challenge.createdBy === currentUserId && (
+                        {challenge.createdBy === currentUserId && !isEnded && (
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button 
@@ -585,7 +719,7 @@ export function TasksManagement({
                                 />
                                 <Input
                                   type="number"
-                                  placeholder="Points"
+                                  placeholder="Points (default: 10)"
                                   value={newChallengeTask.points}
                                   onChange={(e) => setNewChallengeTask({ ...newChallengeTask, points: parseInt(e.target.value) || 10 })}
                                   className="bg-white/10 border-white/20 text-white"
@@ -606,11 +740,12 @@ export function TasksManagement({
                               size="sm"
                               variant="outline"
                               onClick={() => onToggleChallengeTask(challenge.id, task.id)}
+                              disabled={isEnded}
                               className={`p-1 h-6 w-6 rounded-full border-2 ${
                                 task.completedBy.includes(currentUserId)
                                   ? 'bg-green-500 border-green-500 text-white'
                                   : 'border-white/30 hover:border-white/50'
-                              }`}
+                              } ${isEnded ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
                               {task.completedBy.includes(currentUserId) && <Check size={12} />}
                             </Button>
@@ -624,7 +759,9 @@ export function TasksManagement({
                             </div>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-white/60">
-                            <span>{task.points} pts</span>
+                            <Badge className="bg-accent/20 text-accent border-accent/30">
+                              {task.points} pts
+                            </Badge>
                             <span>{task.completedBy.length}/{challenge.participants.length}</span>
                           </div>
                         </div>
@@ -632,7 +769,8 @@ export function TasksManagement({
                     </div>
                   </div>
                 </div>
-              ))
+                )
+              })
             )}
           </div>
         </TabsContent>

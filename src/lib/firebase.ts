@@ -41,10 +41,24 @@ if (!hasValidConfig) {
   console.warn('Firebase configuration incomplete. Some features may not work.')
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
-export const auth = getAuth(app)
-export const db = getFirestore(app)
+// Initialize Firebase with error handling
+let app: any
+let auth: any
+let db: any
+
+try {
+  app = initializeApp(firebaseConfig)
+  auth = getAuth(app)
+  db = getFirestore(app)
+  console.log('✅ Firebase initialized successfully')
+} catch (error) {
+  console.error('❌ Firebase initialization failed:', error)
+  // Create mock objects for development
+  auth = null
+  db = null
+}
+
+export { auth, db }
 
 // Google provider
 const googleProvider = new GoogleAuthProvider()

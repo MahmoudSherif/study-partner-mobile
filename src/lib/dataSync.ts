@@ -1,15 +1,4 @@
-// Data sync service for production with Firebase Firestore
-import { User } from 'firebase/auth'
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  collection, 
-  getDocs, 
-  writeBatch,
-  serverTimestamp 
-} from 'firebase/firestore'
-import { db } from './firebase'
+// Simple data sync service for production without external dependencies
 
 export interface UserData {
   subjects: any[]
@@ -22,34 +11,21 @@ export interface UserData {
   notes: any[]
   events: any[]
   dismissedNotifications: string[]
-  lastSyncAt: any
+  lastSyncAt: Date
 }
 
 export class DataSyncService {
-  private user: User | null = null
+  private userId: string | null = null
 
-  constructor(user: User | null) {
-    this.user = user
+  constructor(userId: string | null) {
+    this.userId = userId
   }
 
   // Initialize sync for a user
-  async initializeSync(user: User) {
-    this.user = user
+  async initializeSync(userId: string) {
+    this.userId = userId
     
     try {
-      // Create user document if it doesn't exist
-      const userDocRef = doc(db, 'users', user.uid)
-      const userDoc = await getDoc(userDocRef)
-      
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          email: user.email,
-          displayName: user.displayName,
-          createdAt: serverTimestamp(),
-          lastSyncAt: serverTimestamp()
-        })
-      }
-      
       // Emit sync success event
       window.dispatchEvent(new CustomEvent('dataSync'))
     } catch (error) {
@@ -59,27 +35,22 @@ export class DataSyncService {
 
   // Clean up sync when user logs out
   cleanup() {
-    this.user = null
+    this.userId = null
   }
 
-  // Sync user data to Firestore
-  async syncToFirestore(userData: Partial<UserData>) {
-    if (!this.user) return
+  // Sync user data (for now just emit events, can be extended for cloud sync)
+  async syncToCloud(userData: Partial<UserData>) {
+    if (!this.userId) return
     
     try {
       // Emit sync start event
       window.dispatchEvent(new CustomEvent('syncStart'))
       
-      const userDocRef = doc(db, 'users', this.user.uid)
-      const dataToSync = {
-        ...userData,
-        lastSyncAt: serverTimestamp()
-      }
-      
-      await setDoc(userDocRef, dataToSync, { merge: true })
-      
-      // Emit sync complete event
-      window.dispatchEvent(new CustomEvent('dataSync'))
+      // In a real implementation, this would sync to a backend
+      // For now, just emit sync complete event
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('dataSync'))
+      }, 100)
     } catch (error) {
       console.error('Failed to sync data:', error)
       // Emit sync error event
@@ -87,31 +58,13 @@ export class DataSyncService {
     }
   }
 
-  // Load user data from Firestore
-  async loadFromFirestore(): Promise<UserData | null> {
-    if (!this.user) return null
+  // Load user data (for now just return null, local storage is handled by useKV)
+  async loadFromCloud(): Promise<UserData | null> {
+    if (!this.userId) return null
     
     try {
-      const userDocRef = doc(db, 'users', this.user.uid)
-      const userDoc = await getDoc(userDocRef)
-      
-      if (userDoc.exists()) {
-        const data = userDoc.data()
-        return {
-          subjects: data.subjects || [],
-          sessions: data.sessions || [],
-          achievements: data.achievements || [],
-          tasks: data.tasks || [],
-          challenges: data.challenges || [],
-          focusSessions: data.focusSessions || [],
-          goals: data.goals || [],
-          notes: data.notes || [],
-          events: data.events || [],
-          dismissedNotifications: data.dismissedNotifications || [],
-          lastSyncAt: data.lastSyncAt
-        }
-      }
-      
+      // In a real implementation, this would load from a backend
+      // For now, data is stored locally via useKV
       return null
     } catch (error) {
       console.error('Failed to load data:', error)
@@ -121,7 +74,7 @@ export class DataSyncService {
 
   // Manual sync method
   async manualSync(userData: Partial<UserData>) {
-    await this.syncToFirestore(userData)
+    await this.syncToCloud(userData)
   }
 }
 
@@ -129,14 +82,14 @@ export class DataSyncService {
 export let dataSyncService: DataSyncService | null = null
 
 // Initialize sync service
-export const initializeDataSync = (user: User | null) => {
+export const initializeDataSync = (userId: string | null) => {
   if (dataSyncService) {
     dataSyncService.cleanup()
   }
   
-  if (user) {
-    dataSyncService = new DataSyncService(user)
-    dataSyncService.initializeSync(user)
+  if (userId) {
+    dataSyncService = new DataSyncService(userId)
+    dataSyncService.initializeSync(userId)
   } else {
     dataSyncService = null
   }

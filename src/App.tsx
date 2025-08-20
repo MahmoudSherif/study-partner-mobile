@@ -108,9 +108,7 @@ function AppContent() {
       }
       
       // Only show toast for genuine application errors that impact user experience
-      if (event.reason && typeof event.reason === 'object' && event.reason.message && 
-          !event.reason.message.includes('firebase') && 
-          !event.reason.message.includes('auth')) {
+      if (event.reason && typeof event.reason === 'object' && event.reason.message) {
         toast.error('Something went wrong. Please try again.')
       }
     }

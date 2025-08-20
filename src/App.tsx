@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { ProfileTab } from '@/components/ProfileTab'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
@@ -26,6 +27,7 @@ import {
 } from '@/hooks/useFirebaseSync'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
+import { FirebaseTestPanel } from '@/components/FirebaseTestPanel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
 import { INITIAL_ACHIEVEMENTS } from '@/lib/constants'
 import { calculateUserStats, updateAchievements } from '@/lib/utils'
@@ -44,7 +46,8 @@ import {
   Lightbulb,
   Target,
   StickyNote,
-  User
+  User,
+  TestTube
 } from '@phosphor-icons/react'
 import { toast, Toaster } from 'sonner'
 
@@ -179,14 +182,14 @@ function AppContent() {
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
-      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test']
       const currentIndex = tabs.indexOf(currentTab)
       if (currentIndex < tabs.length - 1) {
         setCurrentTab(tabs[currentIndex + 1])
       }
     },
     onSwipeRight: () => {
-      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test']
       const currentIndex = tabs.indexOf(currentTab)
       if (currentIndex > 0) {
         setCurrentTab(tabs[currentIndex - 1])
@@ -234,7 +237,7 @@ function AppContent() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const tabParam = urlParams.get('tab')
-    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration'].includes(tabParam)) {
+    if (tabParam && ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration', 'firebase-test'].includes(tabParam)) {
       setCurrentTab(tabParam)
     }
   }, [])
@@ -728,7 +731,7 @@ function AppContent() {
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
-            <TabsList className="grid w-full grid-cols-7 bg-white/10 backdrop-blur-sm">
+            <TabsList className="grid w-full grid-cols-8 bg-white/10 backdrop-blur-sm">
               <TabsTrigger value="achieve" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Target size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Achieve</span>
@@ -756,6 +759,48 @@ function AppContent() {
               <TabsTrigger value="inspiration" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
                 <Lightbulb size={16} className="lg:size-5" />
                 <span className="text-xs lg:text-sm">Inspire</span>
+              </TabsTrigger>
+              <TabsTrigger value="firebase-test" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <TestTube size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Test</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+        <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+          <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
+            <TabsList className="grid w-full grid-cols-8 bg-white/10 backdrop-blur-sm">
+              <TabsTrigger value="achieve" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Target size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Achieve</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CheckSquare size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Tasks</span>
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CalendarIcon size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Calendar</span>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <StickyNote size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Notes</span>
+              </TabsTrigger>
+              <TabsTrigger value="profile" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <User size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="achievements" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Trophy size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Awards</span>
+              </TabsTrigger>
+              <TabsTrigger value="inspiration" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Lightbulb size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Inspire</span>
+              </TabsTrigger>
+              <TabsTrigger value="firebase-test" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <TestTube size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Test</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -817,6 +862,12 @@ function AppContent() {
           <TabsContent value="inspiration" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <InspirationCarousel />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="firebase-test" className="space-y-4 m-0">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
+              <FirebaseTestPanel />
             </div>
           </TabsContent>
         </Tabs>

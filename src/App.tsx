@@ -446,7 +446,7 @@ function AppContent() {
     }
     
     toast.success(`Deleted subject: ${subject?.name}`)
-  }
+    }
 
   const handleUpdateSubject = (id: string, updates: Partial<Subject>) => {
     setSubjects(current => 

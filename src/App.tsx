@@ -15,7 +15,15 @@ import { AchieveTab } from '@/components/AchieveTab'
 import { NotesTab } from '@/components/NotesTab'
 import { AuthScreen } from '@/components/AuthScreen'
 import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { SyncIndicator } from '@/components/SyncIndicator'
+import { 
+  useFirebaseSubjects,
+  useFirebaseSessions,
+  useFirebaseAchievements,
+  useFirebaseTasks,
+  useFirebaseChallenges,
+  useFirebaseFocusSessions,
+  useFirebaseGoals
+} from '@/hooks/useFirebaseSync'
 
 import { InspirationCarousel } from '@/components/InspirationCarousel'
 import { Subject, StudySession, Achievement, Task, Challenge, TaskProgress, FocusSession, Goal } from '@/lib/types'
@@ -51,7 +59,7 @@ function App() {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, loading, signOut } = useAuth()
   
   // Show loading screen while checking authentication
   if (loading) {
@@ -125,16 +133,14 @@ function AppContent() {
   // Get current user ID from Firebase Auth
   const currentUserId = user?.uid || 'anonymous'
   
-  // User-specific data keys - each user has their own data namespace
-  const userDataKey = (key: string) => `${currentUserId}-${key}`
-
-  const [subjects, setSubjects] = useKV<Subject[]>(userDataKey('study-subjects'), [])
-  const [sessions, setSessions] = useKV<StudySession[]>(userDataKey('study-sessions'), [])
-  const [achievements, setAchievements] = useKV<Achievement[]>(userDataKey('achievements'), INITIAL_ACHIEVEMENTS)
-  const [tasks, setTasks] = useKV<Task[]>(userDataKey('tasks'), [])
-  const [challenges, setChallenges] = useKV<Challenge[]>(userDataKey('challenges'), [])
-  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
-  const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
+  // Firebase-synced data - these will automatically sync with Firestore
+  const [subjects, setSubjects] = useFirebaseSubjects()
+  const [sessions, setSessions] = useFirebaseSessions()
+  const [achievements, setAchievements] = useFirebaseAchievements()
+  const [tasks, setTasks] = useFirebaseTasks()
+  const [challenges, setChallenges] = useFirebaseChallenges()
+  const [focusSessions, setFocusSessions] = useFirebaseFocusSessions()
+  const [goals, setGoals] = useFirebaseGoals()
   const [currentTab, setCurrentTab] = useState('achieve')
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
@@ -685,18 +691,39 @@ function AppContent() {
     <div className="min-h-screen relative" ref={containerRef}>
       <SpaceBackground />
       <OfflineIndicator />
-      <SyncIndicator />
       {!isStandalone && <PWAInstallPrompt />}
       
       <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28 no-select">
         <header className="text-center py-6">
-          <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
-          <p className="text-white/80 text-sm lg:text-base drop-shadow">Your mobile study companion</p>
-          {user && (
-            <div className="mt-2 text-xs lg:text-sm text-white/60">
-              Connected as {user.displayName || user.email?.split('@')[0]}
+          <div className="flex items-center justify-between">
+            <div className="flex-1"></div>
+            <div className="flex-1">
+              <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
+              <p className="text-white/80 text-sm lg:text-base drop-shadow">Your mobile study companion</p>
+              {user && (
+                <div className="mt-2 text-xs lg:text-sm text-white/60">
+                  Connected as {user.displayName || user.email?.split('@')[0]}
+                </div>
+              )}
             </div>
-          )}
+            <div className="flex-1 flex justify-end">
+              {user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    const { error } = await signOut()
+                    if (error) {
+                      toast.error('Failed to sign out')
+                    }
+                  }}
+                  className="text-white/70 hover:text-white hover:bg-white/10 text-xs lg:text-sm"
+                >
+                  Sign Out
+                </Button>
+              )}
+            </div>
+          </div>
         </header>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">

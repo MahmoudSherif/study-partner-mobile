@@ -213,7 +213,7 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
           <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
             <TabsTrigger value="daily" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               <Calendar size={14} className="mr-1" />
-              7 Days
+              Daily
             </TabsTrigger>
             <TabsTrigger value="hourly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               <Clock size={14} className="mr-1" />

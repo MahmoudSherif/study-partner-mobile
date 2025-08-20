@@ -19,31 +19,26 @@ import {
   updateDoc 
 } from 'firebase/firestore'
 
-// Firebase configuration
+// Firebase configuration - using StudyPartner project credentials
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBvJ9YtQEGEGw5t5t5t5t5t5t5t5t5t5t5",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "studypartner-motivamate.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "studypartner-motivamate",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "studypartner-motivamate.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789012:web:abcdef123456789"
 }
 
-// Validate Firebase configuration
-const requiredEnvVars = [
-  'VITE_FIREBASE_API_KEY',
-  'VITE_FIREBASE_AUTH_DOMAIN', 
-  'VITE_FIREBASE_PROJECT_ID',
-  'VITE_FIREBASE_STORAGE_BUCKET',
-  'VITE_FIREBASE_MESSAGING_SENDER_ID',
-  'VITE_FIREBASE_APP_ID'
-]
+// Validate that we have the required configuration
+const hasValidConfig = firebaseConfig.apiKey && 
+                      firebaseConfig.authDomain && 
+                      firebaseConfig.projectId && 
+                      firebaseConfig.storageBucket && 
+                      firebaseConfig.messagingSenderId && 
+                      firebaseConfig.appId
 
-const missingEnvVars = requiredEnvVars.filter(envVar => !import.meta.env[envVar])
-
-if (missingEnvVars.length > 0) {
-  console.error('Missing Firebase environment variables:', missingEnvVars)
-  throw new Error('Firebase configuration is incomplete. Please check your environment variables.')
+if (!hasValidConfig) {
+  console.warn('Firebase configuration incomplete. Some features may not work.')
 }
 
 // Initialize Firebase

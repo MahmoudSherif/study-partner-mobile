@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/contexts/AuthContext'
 // Fixed async/await usage for notifications
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -32,8 +33,14 @@ interface AchieveTabProps {
 }
 
 export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabProps) {
-  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>('focus-sessions', [])
-  const [goals, setGoals] = useKV<Goal[]>('focus-goals', [])
+  const { user } = useAuth()
+  
+  // Get user-specific data
+  const currentUserId = user?.uid || 'anonymous'
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+  
+  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
+  const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
   
   // Timer state
   const [isRunning, setIsRunning] = useState(false)

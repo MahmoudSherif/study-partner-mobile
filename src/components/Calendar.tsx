@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -31,7 +32,13 @@ const EVENT_TYPES = [
 ]
 
 export function Calendar({ subjects }: CalendarProps) {
-  const [events, setEvents] = useKV<CalendarEvent[]>('calendar-events', [])
+  const { user } = useAuth()
+  
+  // Get user-specific data
+  const currentUserId = user?.uid || 'anonymous'
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+  
+  const [events, setEvents] = useKV<CalendarEvent[]>(userDataKey('calendar-events'), [])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [isAddEventOpen, setIsAddEventOpen] = useState(false)

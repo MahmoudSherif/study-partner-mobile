@@ -20,8 +20,12 @@ interface ProfileTabProps {
 }
 
 export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabProps) {
-  const [focusSessions] = useKV<FocusSession[]>('focus-sessions', [])
   const { user, signOut } = useAuth()
+  
+  // Get user-specific focus sessions
+  const currentUserId = user?.uid || 'anonymous'
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+  const [focusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
   
   const handleSignOut = async () => {
     const { error } = await signOut()

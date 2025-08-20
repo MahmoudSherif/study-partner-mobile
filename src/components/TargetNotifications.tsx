@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/contexts/AuthContext'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -15,7 +16,13 @@ interface TargetNotificationsProps {
 }
 
 export function TargetNotifications({ subjects, sessions, onSelectSubject }: TargetNotificationsProps) {
-  const [dismissedNotifications, setDismissedNotifications] = useKV<string[]>('dismissed-notifications', [])
+  const { user } = useAuth()
+  
+  // Get user-specific data
+  const currentUserId = user?.uid || 'anonymous'
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+  
+  const [dismissedNotifications, setDismissedNotifications] = useKV<string[]>(userDataKey('dismissed-notifications'), [])
   const [notifications, setNotifications] = useState<TargetNotification[]>([])
 
   useEffect(() => {

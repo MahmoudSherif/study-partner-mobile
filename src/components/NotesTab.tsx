@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -43,7 +44,13 @@ interface Size {
 }
 
 export function NotesTab() {
-  const [notes, setNotes] = useKV<StickyNote[]>('sticky-notes', [])
+  const { user } = useAuth()
+  
+  // Get user-specific data
+  const currentUserId = user?.uid || 'anonymous'
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+  
+  const [notes, setNotes] = useKV<StickyNote[]>(userDataKey('sticky-notes'), [])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedColor, setSelectedColor] = useState(NOTE_COLORS[0])
   const [showAddNote, setShowAddNote] = useState(false)

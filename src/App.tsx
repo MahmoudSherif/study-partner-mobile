@@ -27,6 +27,7 @@ import { usePWA } from '@/hooks/usePWA'
 import { useMobileBehavior } from '@/hooks/useDeviceDetection'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { notificationManager, initializeNotifications } from '@/lib/notifications'
+import '@/lib/firebaseTest' // Test Firebase connection in development
 import { 
   Clock, 
   ChartBar, 
@@ -129,13 +130,16 @@ function AppContent() {
     }
   }, [])
 
-  const [subjects, setSubjects] = useKV<Subject[]>('study-subjects', [])
-  const [sessions, setSessions] = useKV<StudySession[]>('study-sessions', [])
-  const [achievements, setAchievements] = useKV<Achievement[]>('achievements', INITIAL_ACHIEVEMENTS)
-  const [tasks, setTasks] = useKV<Task[]>('tasks', [])
-  const [challenges, setChallenges] = useKV<Challenge[]>('challenges', [])
-  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>('focus-sessions', [])
-  const [goals, setGoals] = useKV<Goal[]>('focus-goals', [])
+  // User-specific data keys - each user has their own data namespace
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+  
+  const [subjects, setSubjects] = useKV<Subject[]>(userDataKey('study-subjects'), [])
+  const [sessions, setSessions] = useKV<StudySession[]>(userDataKey('study-sessions'), [])
+  const [achievements, setAchievements] = useKV<Achievement[]>(userDataKey('achievements'), INITIAL_ACHIEVEMENTS)
+  const [tasks, setTasks] = useKV<Task[]>(userDataKey('tasks'), [])
+  const [challenges, setChallenges] = useKV<Challenge[]>(userDataKey('challenges'), [])
+  const [focusSessions, setFocusSessions] = useKV<FocusSession[]>(userDataKey('focus-sessions'), [])
+  const [goals, setGoals] = useKV<Goal[]>(userDataKey('focus-goals'), [])
   const [currentTab, setCurrentTab] = useState('achieve')
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
@@ -173,6 +177,9 @@ function AppContent() {
   
   // Get current user ID from Firebase Auth
   const currentUserId = user?.uid || 'anonymous'
+  
+  // User-specific data keys - each user has their own data namespace
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
 
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
@@ -718,6 +725,11 @@ function AppContent() {
         <header className="text-center py-6">
           <h1 className="text-2xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
           <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
+          {user && (
+            <div className="mt-2 text-xs text-white/60">
+              Connected as {user.displayName || user.email?.split('@')[0]}
+            </div>
+          )}
         </header>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">

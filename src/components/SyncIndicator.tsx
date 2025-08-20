@@ -33,8 +33,8 @@ export const SyncIndicator = () => {
     window.addEventListener('syncStart', handleSyncStart)
     window.addEventListener('syncError', handleSyncError)
 
-    // Set initial sync time
-    const lastSync = localStorage.getItem('lastSyncAt')
+    // Set initial sync time using user-scoped key
+    const lastSync = user ? localStorage.getItem(`${user.uid}-lastSyncAt`) : null
     if (lastSync) {
       setLastSyncTime(new Date(lastSync))
     }

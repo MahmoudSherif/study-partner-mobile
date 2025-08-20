@@ -17,6 +17,9 @@ export interface UserData {
   challenges: any[]
   focusSessions: any[]
   goals: any[]
+  notes: any[]
+  events: any[]
+  dismissedNotifications: string[]
   lastSyncAt: any
 }
 
@@ -66,14 +69,19 @@ export class DataSyncService {
       if (userDataDoc.exists()) {
         const data = userDataDoc.data() as UserData
         
-        // Update local storage with Firestore data
-        if (data.subjects) localStorage.setItem('study-subjects', JSON.stringify(data.subjects))
-        if (data.sessions) localStorage.setItem('study-sessions', JSON.stringify(data.sessions))
-        if (data.achievements) localStorage.setItem('achievements', JSON.stringify(data.achievements))
-        if (data.tasks) localStorage.setItem('tasks', JSON.stringify(data.tasks))
-        if (data.challenges) localStorage.setItem('challenges', JSON.stringify(data.challenges))
-        if (data.focusSessions) localStorage.setItem('focus-sessions', JSON.stringify(data.focusSessions))
-        if (data.goals) localStorage.setItem('focus-goals', JSON.stringify(data.goals))
+        // Update local storage with Firestore data using user-scoped keys
+        const userKey = (key: string) => `${this.user!.uid}-${key}`
+        
+        if (data.subjects) localStorage.setItem(userKey('study-subjects'), JSON.stringify(data.subjects))
+        if (data.sessions) localStorage.setItem(userKey('study-sessions'), JSON.stringify(data.sessions))
+        if (data.achievements) localStorage.setItem(userKey('achievements'), JSON.stringify(data.achievements))
+        if (data.tasks) localStorage.setItem(userKey('tasks'), JSON.stringify(data.tasks))
+        if (data.challenges) localStorage.setItem(userKey('challenges'), JSON.stringify(data.challenges))
+        if (data.focusSessions) localStorage.setItem(userKey('focus-sessions'), JSON.stringify(data.focusSessions))
+        if (data.goals) localStorage.setItem(userKey('focus-goals'), JSON.stringify(data.goals))
+        if (data.notes) localStorage.setItem(userKey('sticky-notes'), JSON.stringify(data.notes))
+        if (data.events) localStorage.setItem(userKey('calendar-events'), JSON.stringify(data.events))
+        if (data.dismissedNotifications) localStorage.setItem(userKey('dismissed-notifications'), JSON.stringify(data.dismissedNotifications))
         
         console.log('User data loaded from Firestore')
       } else {
@@ -94,19 +102,25 @@ export class DataSyncService {
       // Emit sync start event
       window.dispatchEvent(new CustomEvent('syncStart'))
       
+      // Use user-scoped keys
+      const userKey = (key: string) => `${this.user!.uid}-${key}`
+      
       const userData: UserData = {
-        subjects: JSON.parse(localStorage.getItem('study-subjects') || '[]'),
-        sessions: JSON.parse(localStorage.getItem('study-sessions') || '[]'),
-        achievements: JSON.parse(localStorage.getItem('achievements') || '[]'),
-        tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
-        challenges: JSON.parse(localStorage.getItem('challenges') || '[]'),
-        focusSessions: JSON.parse(localStorage.getItem('focus-sessions') || '[]'),
-        goals: JSON.parse(localStorage.getItem('focus-goals') || '[]'),
+        subjects: JSON.parse(localStorage.getItem(userKey('study-subjects')) || '[]'),
+        sessions: JSON.parse(localStorage.getItem(userKey('study-sessions')) || '[]'),
+        achievements: JSON.parse(localStorage.getItem(userKey('achievements')) || '[]'),
+        tasks: JSON.parse(localStorage.getItem(userKey('tasks')) || '[]'),
+        challenges: JSON.parse(localStorage.getItem(userKey('challenges')) || '[]'),
+        focusSessions: JSON.parse(localStorage.getItem(userKey('focus-sessions')) || '[]'),
+        goals: JSON.parse(localStorage.getItem(userKey('focus-goals')) || '[]'),
+        notes: JSON.parse(localStorage.getItem(userKey('sticky-notes')) || '[]'),
+        events: JSON.parse(localStorage.getItem(userKey('calendar-events')) || '[]'),
+        dismissedNotifications: JSON.parse(localStorage.getItem(userKey('dismissed-notifications')) || '[]'),
         lastSyncAt: serverTimestamp()
       }
 
       await setDoc(doc(db, 'study-data', this.user.uid), userData, { merge: true })
-      localStorage.setItem('lastSyncAt', new Date().toISOString())
+      localStorage.setItem(`${this.user.uid}-lastSyncAt`, new Date().toISOString())
       
       // Emit sync success event
       window.dispatchEvent(new CustomEvent('dataSync'))
@@ -129,21 +143,26 @@ export class DataSyncService {
           const data = doc.data() as UserData
           
           // Only update if the data is newer than local data
-          const localLastSync = localStorage.getItem('lastSyncAt')
+          const localLastSync = localStorage.getItem(`${this.user!.uid}-lastSyncAt`)
           const firestoreLastSync = data.lastSyncAt?.toMillis?.() || 0
           const localLastSyncTime = localLastSync ? new Date(localLastSync).getTime() : 0
           
           if (firestoreLastSync > localLastSyncTime) {
-            // Update local storage with newer Firestore data
-            if (data.subjects) localStorage.setItem('study-subjects', JSON.stringify(data.subjects))
-            if (data.sessions) localStorage.setItem('study-sessions', JSON.stringify(data.sessions))
-            if (data.achievements) localStorage.setItem('achievements', JSON.stringify(data.achievements))
-            if (data.tasks) localStorage.setItem('tasks', JSON.stringify(data.tasks))
-            if (data.challenges) localStorage.setItem('challenges', JSON.stringify(data.challenges))
-            if (data.focusSessions) localStorage.setItem('focus-sessions', JSON.stringify(data.focusSessions))
-            if (data.goals) localStorage.setItem('focus-goals', JSON.stringify(data.goals))
+            // Update local storage with newer Firestore data using user-scoped keys
+            const userKey = (key: string) => `${this.user!.uid}-${key}`
             
-            localStorage.setItem('lastSyncAt', new Date().toISOString())
+            if (data.subjects) localStorage.setItem(userKey('study-subjects'), JSON.stringify(data.subjects))
+            if (data.sessions) localStorage.setItem(userKey('study-sessions'), JSON.stringify(data.sessions))
+            if (data.achievements) localStorage.setItem(userKey('achievements'), JSON.stringify(data.achievements))
+            if (data.tasks) localStorage.setItem(userKey('tasks'), JSON.stringify(data.tasks))
+            if (data.challenges) localStorage.setItem(userKey('challenges'), JSON.stringify(data.challenges))
+            if (data.focusSessions) localStorage.setItem(userKey('focus-sessions'), JSON.stringify(data.focusSessions))
+            if (data.goals) localStorage.setItem(userKey('focus-goals'), JSON.stringify(data.goals))
+            if (data.notes) localStorage.setItem(userKey('sticky-notes'), JSON.stringify(data.notes))
+            if (data.events) localStorage.setItem(userKey('calendar-events'), JSON.stringify(data.events))
+            if (data.dismissedNotifications) localStorage.setItem(userKey('dismissed-notifications'), JSON.stringify(data.dismissedNotifications))
+            
+            localStorage.setItem(`${this.user!.uid}-lastSyncAt`, new Date().toISOString())
             console.log('Local data updated from Firestore')
             
             // Trigger a custom event to notify components of data update

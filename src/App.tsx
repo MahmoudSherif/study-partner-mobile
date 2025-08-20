@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ProfileTab } from '@/components/ProfileTab'
-import { ProgressCharts } from '@/components/ProgressCharts'
 import { Achievements } from '@/components/Achievements'
 import { SpaceBackground } from '@/components/SpaceBackground'
 import { QuotesBar } from '@/components/QuotesBar'
@@ -774,9 +773,6 @@ function AppContent() {
           <TabsContent value="profile" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
               <ProfileTab stats={stats} achievements={achievements} sessions={allSessions} />
-            </div>
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-              <ProgressCharts sessions={sessions} subjects={subjects} />
             </div>
           </TabsContent>
 

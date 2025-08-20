@@ -160,7 +160,6 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     updateGoalsProgress(sessionMinutes).catch(error => {
       // Silent error handling for goals progress
     })
-    })
 
     // Reset timer state
     setCurrentSession(null)

@@ -1,5 +1,5 @@
 // Firestore data management for user data
-import { db } from '@/lib/firebase'
+import { db, isFirebaseAvailable } from '@/lib/firebase'
 import { 
   doc, 
   getDoc, 
@@ -17,16 +17,26 @@ import { Subject, StudySession, Achievement, Task, Challenge, FocusSession, Goal
 
 export class FirestoreService {
   private getUserDocRef(userId: string) {
+    if (!isFirebaseAvailable || !db) {
+      throw new Error('Firestore database not available')
+    }
     return doc(db, 'users', userId)
   }
 
   private getUserDataRef(userId: string, dataType: string) {
+    if (!isFirebaseAvailable || !db) {
+      throw new Error('Firestore database not available')
+    }
     return doc(db, 'userData', `${userId}_${dataType}`)
   }
 
   // User profile management
   async getUserProfile(userId: string) {
     try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: null, error: 'Firestore database not available - offline mode' }
+      }
+      
       const docRef = this.getUserDocRef(userId)
       const docSnap = await getDoc(docRef)
       
@@ -42,6 +52,10 @@ export class FirestoreService {
 
   async updateUserProfile(userId: string, data: any) {
     try {
+      if (!isFirebaseAvailable || !db) {
+        return { error: 'Firestore database not available - offline mode' }
+      }
+      
       const docRef = this.getUserDocRef(userId)
       await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() })
       return { error: null }
@@ -49,9 +63,14 @@ export class FirestoreService {
       return { error: error.message }
     }
   }
+  }
 
   async createUserProfile(userId: string, data: any) {
     try {
+      if (!isFirebaseAvailable || !db) {
+        return { error: 'Firestore database not available - offline mode' }
+      }
+      
       const docRef = this.getUserDocRef(userId)
       await setDoc(docRef, { 
         ...data, 
@@ -67,6 +86,10 @@ export class FirestoreService {
   // Generic data management
   async saveUserData<T>(userId: string, dataType: string, data: T) {
     try {
+      if (!isFirebaseAvailable || !db) {
+        return { error: 'Firestore database not available - offline mode' }
+      }
+      
       const docRef = this.getUserDataRef(userId, dataType)
       await setDoc(docRef, {
         data,
@@ -82,6 +105,10 @@ export class FirestoreService {
 
   async getUserData<T>(userId: string, dataType: string): Promise<{ data: T | null; error: string | null }> {
     try {
+      if (!isFirebaseAvailable || !db) {
+        return { data: null, error: 'Firestore database not available - offline mode' }
+      }
+      
       const docRef = this.getUserDataRef(userId, dataType)
       const docSnap = await getDoc(docRef)
       

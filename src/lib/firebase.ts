@@ -16,21 +16,24 @@ import {
   doc, 
   getDoc, 
   setDoc, 
-  updateDoc 
+  updateDoc,
+  serverTimestamp
 } from 'firebase/firestore'
+import { mockAuthFunctions } from '@/lib/mockAuth'
 
 // Firebase configuration - using StudyPartner project credentials
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBvJ9YtQEGEGw5t5t5t5t5t5t5t5t5t5t5",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "studypartner-motivamate.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "studypartner-motivamate",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "studypartner-motivamate.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789012",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789012:web:abcdef123456789"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCVwRQCqoR7fYY3_YYY3_YYY3_YYY3_YYY3_Y",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "studypartner-app.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "studypartner-app",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "studypartner-app.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "987654321098",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:987654321098:web:abcdef1234567890abcdef"
 }
 
 // Validate that we have the required configuration
 const hasValidConfig = firebaseConfig.apiKey && 
+                      firebaseConfig.apiKey !== "demo-api-key" &&
                       firebaseConfig.authDomain && 
                       firebaseConfig.projectId && 
                       firebaseConfig.storageBucket && 
@@ -38,27 +41,34 @@ const hasValidConfig = firebaseConfig.apiKey &&
                       firebaseConfig.appId
 
 if (!hasValidConfig) {
-  console.warn('Firebase configuration incomplete. Some features may not work.')
+  console.warn('Firebase configuration incomplete. Using offline mode.')
 }
 
 // Initialize Firebase with error handling
 let app: any
 let auth: any
 let db: any
+let isFirebaseAvailable = false
 
 try {
-  app = initializeApp(firebaseConfig)
-  auth = getAuth(app)
-  db = getFirestore(app)
-  console.log('✅ Firebase initialized successfully')
+  if (hasValidConfig) {
+    app = initializeApp(firebaseConfig)
+    auth = getAuth(app)
+    db = getFirestore(app)
+    isFirebaseAvailable = true
+    console.log('✅ Firebase initialized successfully')
+  } else {
+    throw new Error('Invalid Firebase configuration')
+  }
 } catch (error) {
-  console.error('❌ Firebase initialization failed:', error)
+  console.warn('⚠️ Firebase initialization failed, using offline mode:', error)
   // Create mock objects for development
   auth = null
   db = null
+  isFirebaseAvailable = false
 }
 
-export { auth, db }
+export { auth, db, isFirebaseAvailable }
 
 // Google provider
 const googleProvider = new GoogleAuthProvider()
@@ -68,6 +78,15 @@ export const authFunctions = {
   // Sign up with email and password
   signUp: async (email: string, password: string, displayName?: string) => {
     try {
+      if (!isFirebaseAvailable) {
+        // Use mock auth system
+        return await mockAuthFunctions.signUp(email, password, displayName)
+      }
+      
+      if (!auth) {
+        throw new Error('Firebase authentication not available')
+      }
+      
       const result = await createUserWithEmailAndPassword(auth, email, password)
       
       // Update user profile with display name
@@ -84,6 +103,15 @@ export const authFunctions = {
   // Sign in with email and password
   signIn: async (email: string, password: string) => {
     try {
+      if (!isFirebaseAvailable) {
+        // Use mock auth system
+        return await mockAuthFunctions.signIn(email, password)
+      }
+      
+      if (!auth) {
+        throw new Error('Firebase authentication not available')
+      }
+      
       const result = await signInWithEmailAndPassword(auth, email, password)
       return { user: result.user, error: null }
     } catch (error: any) {
@@ -94,6 +122,15 @@ export const authFunctions = {
   // Sign in with Google
   signInWithGoogle: async () => {
     try {
+      if (!isFirebaseAvailable) {
+        // Use mock auth system
+        return await mockAuthFunctions.signInWithGoogle()
+      }
+      
+      if (!auth) {
+        throw new Error('Firebase authentication not available')
+      }
+      
       const result = await signInWithPopup(auth, googleProvider)
       return { user: result.user, error: null }
     } catch (error: any) {
@@ -104,6 +141,15 @@ export const authFunctions = {
   // Sign out
   signOut: async () => {
     try {
+      if (!isFirebaseAvailable) {
+        // Use mock auth system
+        return await mockAuthFunctions.signOut()
+      }
+      
+      if (!auth) {
+        throw new Error('Firebase authentication not available')
+      }
+      
       await firebaseSignOut(auth)
       return { error: null }
     } catch (error: any) {
@@ -113,11 +159,23 @@ export const authFunctions = {
 
   // Get current user
   getCurrentUser: () => {
-    return auth.currentUser
+    if (!isFirebaseAvailable) {
+      return mockAuthFunctions.getCurrentUser()
+    }
+    return auth?.currentUser || null
   },
 
   // Listen to auth state changes
   onAuthStateChanged: (callback: (user: User | null) => void) => {
+    if (!isFirebaseAvailable) {
+      // Use mock auth system
+      return mockAuthFunctions.onAuthStateChanged(callback as any)
+    }
+    
+    if (!auth) {
+      callback(null)
+      return () => {} // Return empty unsubscribe function
+    }
     return onAuthStateChanged(auth, callback)
   }
 }
@@ -127,6 +185,19 @@ export const firestoreFunctions = {
   // Get user profile
   getUserProfile: async (uid: string) => {
     try {
+      if (!isFirebaseAvailable || !db) {
+        // Return mock data for offline mode
+        return { 
+          data: {
+            email: mockAuthFunctions.getCurrentUser()?.email || null,
+            displayName: mockAuthFunctions.getCurrentUser()?.displayName || null,
+            createdAt: new Date(),
+            lastLoginAt: new Date()
+          }, 
+          error: null 
+        }
+      }
+      
       const docRef = doc(db, 'users', uid)
       const docSnap = await getDoc(docRef)
       
@@ -143,8 +214,13 @@ export const firestoreFunctions = {
   // Update user profile
   updateUserProfile: async (uid: string, data: any) => {
     try {
+      if (!isFirebaseAvailable || !db) {
+        // Silently succeed in offline mode
+        return { error: null }
+      }
+      
       const docRef = doc(db, 'users', uid)
-      await updateDoc(docRef, data)
+      await updateDoc(docRef, { ...data, updatedAt: serverTimestamp() })
       return { error: null }
     } catch (error: any) {
       return { error: error.message }
@@ -154,8 +230,17 @@ export const firestoreFunctions = {
   // Create user profile
   createUserProfile: async (uid: string, data: any) => {
     try {
+      if (!isFirebaseAvailable || !db) {
+        // Silently succeed in offline mode
+        return { error: null }
+      }
+      
       const docRef = doc(db, 'users', uid)
-      await setDoc(docRef, data)
+      await setDoc(docRef, { 
+        ...data, 
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
       return { error: null }
     } catch (error: any) {
       return { error: error.message }

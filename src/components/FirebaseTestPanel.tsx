@@ -12,6 +12,7 @@ import {
   type AuthTestResult 
 } from '@/lib/firebaseTest'
 import { useAuth } from '@/contexts/AuthContext'
+import { isFirebaseAvailable } from '@/lib/firebase'
 import { 
   CheckCircle, 
   XCircle, 
@@ -20,7 +21,8 @@ import {
   Database, 
   Shield, 
   Globe, 
-  User
+  User,
+  DatabaseSlash
 } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 
@@ -139,6 +141,37 @@ export const FirebaseTestPanel = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Firebase Status Indicator */}
+          <div className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/5">
+            <div className="flex items-center gap-3">
+              {isFirebaseAvailable ? (
+                <Database size={20} className="text-green-400" />
+              ) : (
+                <DatabaseSlash size={20} className="text-yellow-400" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-white">
+                  {isFirebaseAvailable ? 'Firebase Connected' : 'Firebase Offline Mode'}
+                </p>
+                <p className="text-xs text-white/60">
+                  {isFirebaseAvailable 
+                    ? 'All Firebase services are available' 
+                    : 'Using local storage and mock authentication'
+                  }
+                </p>
+              </div>
+            </div>
+            <Badge 
+              variant={isFirebaseAvailable ? 'default' : 'secondary'}
+              className={isFirebaseAvailable 
+                ? 'bg-green-500/20 text-green-300 border-green-500/30' 
+                : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
+              }
+            >
+              {isFirebaseAvailable ? 'Online' : 'Offline'}
+            </Badge>
+          </div>
+          
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <Button 
               onClick={runTests} 

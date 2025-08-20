@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { WifiSlash, Wifi } from '@phosphor-icons/react'
+import { WifiSlash, Wifi, Database, DatabaseSlash } from '@phosphor-icons/react'
+import { isFirebaseAvailable } from '@/lib/firebase'
 import { toast } from 'sonner'
 
 export function OfflineIndicator() {
@@ -30,8 +31,8 @@ export function OfflineIndicator() {
     window.addEventListener('online', handleOnline)
     window.addEventListener('offline', handleOffline)
 
-    // Show indicator initially if offline
-    if (!navigator.onLine) {
+    // Show indicator initially if offline or Firebase unavailable
+    if (!navigator.onLine || !isFirebaseAvailable) {
       setShowIndicator(true)
     }
 
@@ -41,13 +42,54 @@ export function OfflineIndicator() {
     }
   }, [])
 
-  if (!showIndicator || isOnline) return null
+  // Show indicator if offline or Firebase unavailable
+  const shouldShowIndicator = showIndicator && (!isOnline || !isFirebaseAvailable)
+  
+  if (!shouldShowIndicator) return null
+
+  const getIndicatorContent = () => {
+    if (!isOnline && !isFirebaseAvailable) {
+      return {
+        icon: <WifiSlash size={16} />,
+        text: 'Offline Mode',
+        bgColor: 'bg-red-500/90',
+        borderColor: 'border-red-400/50'
+      }
+    }
+    
+    if (!isOnline) {
+      return {
+        icon: <WifiSlash size={16} />,
+        text: 'No Internet',
+        bgColor: 'bg-red-500/90',
+        borderColor: 'border-red-400/50'
+      }
+    }
+    
+    if (!isFirebaseAvailable) {
+      return {
+        icon: <DatabaseSlash size={16} />,
+        text: 'Local Mode',
+        bgColor: 'bg-yellow-500/90',
+        borderColor: 'border-yellow-400/50'
+      }
+    }
+
+    return {
+      icon: <Wifi size={16} />,
+      text: 'Online',
+      bgColor: 'bg-green-500/90',
+      borderColor: 'border-green-400/50'
+    }
+  }
+
+  const { icon, text, bgColor, borderColor } = getIndicatorContent()
 
   return (
-    <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-red-500/90 backdrop-blur-sm rounded-full px-4 py-2 border border-red-400/50 animate-pulse">
+    <div className={`fixed top-20 left-1/2 transform -translate-x-1/2 z-50 ${bgColor} backdrop-blur-sm rounded-full px-4 py-2 border ${borderColor} ${!isFirebaseAvailable ? 'animate-pulse' : ''}`}>
       <div className="flex items-center gap-2 text-white text-sm font-medium">
-        <WifiSlash size={16} />
-        <span>Offline Mode</span>
+        {icon}
+        <span>{text}</span>
       </div>
     </div>
   )

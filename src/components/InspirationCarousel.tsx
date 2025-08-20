@@ -405,13 +405,13 @@ export function InspirationCarousel() {
         <p className="text-white/70 text-sm">Learn from history's greatest minds across cultures and time</p>
       </div>
 
-      <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden">
-        <CardContent className="p-0">
+      <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden lg:h-[500px]">
+        <CardContent className="p-0 lg:grid lg:grid-cols-2 lg:h-full">
           {/* Character Image */}
-          <div className="h-48 bg-gradient-to-br from-primary/30 to-accent/30 relative flex items-center justify-center">
+          <div className="h-48 lg:h-full bg-gradient-to-br from-primary/30 to-accent/30 relative flex items-center justify-center">
             <div className="text-center p-4">
               {currentCharacter.imageType === 'portrait' && currentCharacter.imageUrl ? (
-                <div className="w-24 h-24 rounded-full mx-auto mb-3 overflow-hidden bg-white/20 backdrop-blur-sm border-2 border-white/30 relative">
+                <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-full mx-auto mb-3 overflow-hidden bg-white/20 backdrop-blur-sm border-2 border-white/30 relative">
                   <img 
                     src={currentCharacter.imageUrl} 
                     alt={`Portrait of ${currentCharacter.name}`}
@@ -437,19 +437,19 @@ export function InspirationCarousel() {
                   />
                 </div>
               ) : (
-                <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
-                  <span className="text-2xl font-bold text-white">
+                <div className="w-24 h-24 lg:w-32 lg:h-32 bg-white/20 rounded-full mx-auto mb-3 flex items-center justify-center backdrop-blur-sm">
+                  <span className="text-2xl lg:text-3xl font-bold text-white">
                     {currentCharacter.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
               )}
-              <div className="text-xs text-white/60 italic">
+              <div className="text-xs lg:text-sm text-white/60 italic">
                 {currentCharacter.imageDescription}
               </div>
             </div>
             
             {/* Progress indicators */}
-            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1 max-w-xs overflow-hidden">
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-1 max-w-xs overflow-hidden lg:hidden">
               <div className="flex space-x-1 bg-black/30 rounded-full px-2 py-1 backdrop-blur-sm">
                 {inspirationalCharacters.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((_, index) => {
                   const actualIndex = Math.max(0, currentIndex - 2) + index;
@@ -470,18 +470,38 @@ export function InspirationCarousel() {
           </div>
 
           {/* Character Info */}
-          <div className="p-6 space-y-4">
-            <div className="text-center">
-              <h3 className="text-xl font-bold text-white">{currentCharacter.name}</h3>
+          <div className="p-6 lg:p-8 space-y-4 lg:space-y-6 lg:overflow-y-auto">
+            <div className="text-center lg:text-left">
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{currentCharacter.name}</h3>
               <Badge variant="secondary" className="mt-1 bg-white/20 text-white border-white/30">
                 {currentCharacter.field}
               </Badge>
+              
+              {/* Progress indicators for large screens */}
+              <div className="hidden lg:flex justify-center lg:justify-start space-x-1 mt-4">
+                <div className="flex space-x-1 bg-black/30 rounded-full px-3 py-2 backdrop-blur-sm">
+                  {inspirationalCharacters.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((_, index) => {
+                    const actualIndex = Math.max(0, currentIndex - 2) + index;
+                    return (
+                      <div
+                        key={actualIndex}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                          actualIndex === currentIndex ? 'bg-white' : 'bg-white/30'
+                        }`}
+                      />
+                    )
+                  })}
+                </div>
+                <div className="text-sm text-white/60 bg-black/30 rounded px-3 py-2 backdrop-blur-sm">
+                  {currentIndex + 1}/{inspirationalCharacters.length}
+                </div>
+              </div>
             </div>
 
             {/* Achievements */}
             <div className="space-y-2">
-              <h4 className="font-semibold text-white/90">Key Achievements:</h4>
-              <ul className="space-y-1">
+              <h4 className="font-semibold text-white/90 lg:text-lg">Key Achievements:</h4>
+              <ul className="space-y-1 lg:space-y-2">
                 {currentCharacter.achievements.map((achievement, index) => (
                   <li key={index} className="text-sm text-white/80 flex items-start gap-2">
                     <span className="text-accent mt-1">•</span>
@@ -492,11 +512,11 @@ export function InspirationCarousel() {
             </div>
 
             {/* Quote */}
-            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+            <div className="bg-white/5 rounded-lg p-4 lg:p-6 border border-white/10">
               <div className="flex items-start gap-3">
-                <Quote size={20} className="text-accent mt-1 flex-shrink-0" />
+                <Quote size={20} className="lg:size-6 text-accent mt-1 flex-shrink-0" />
                 <div>
-                  <p className="text-white/90 italic text-sm leading-relaxed">
+                  <p className="text-white/90 italic text-sm lg:text-base leading-relaxed">
                     "{currentCharacter.quote}"
                   </p>
                   <p className="text-white/60 text-xs mt-2">

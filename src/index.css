@@ -145,6 +145,31 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Responsive design improvements for larger screens */
+@media (min-width: 1024px) {
+  /* Better spacing for larger screens */
+  .space-y-4 > * + * { 
+    margin-top: 1.5rem !important; 
+  }
+  .space-y-6 > * + * { 
+    margin-top: 2rem !important; 
+  }
+  .gap-4 { 
+    gap: 1.5rem !important; 
+  }
+  .gap-6 { 
+    gap: 2rem !important; 
+  }
+  
+  /* Improved padding for larger screens */
+  .p-4 { 
+    padding: 1.5rem !important; 
+  }
+  .p-6 { 
+    padding: 2rem !important; 
+  }
+}
+
 /* Allow text selection on content areas */
 input, textarea, [contenteditable] {
   -webkit-user-select: text;

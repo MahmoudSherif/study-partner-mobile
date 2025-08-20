@@ -130,22 +130,26 @@ export function Achievements({ achievements }: AchievementsProps) {
         </TabsList>
 
         <TabsContent value="all" className="space-y-3">
-          {achievements
-            .sort((a, b) => {
-              if (a.unlocked && !b.unlocked) return -1
-              if (!a.unlocked && b.unlocked) return 1
-              return 0
-            })
-            .map(renderAchievementCard)}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+            {achievements
+              .sort((a, b) => {
+                if (a.unlocked && !b.unlocked) return -1
+                if (!a.unlocked && b.unlocked) return 1
+                return 0
+              })
+              .map(renderAchievementCard)}
+          </div>
         </TabsContent>
 
         <TabsContent value="unlocked" className="space-y-3">
-          {achievements
-            .filter(a => a.unlocked)
-            .sort((a, b) => new Date(b.unlockedAt || 0).getTime() - new Date(a.unlockedAt || 0).getTime())
-            .map(renderAchievementCard)}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+            {achievements
+              .filter(a => a.unlocked)
+              .sort((a, b) => new Date(b.unlockedAt || 0).getTime() - new Date(a.unlockedAt || 0).getTime())
+              .map(renderAchievementCard)}
+          </div>
           {unlockedCount === 0 && (
-            <div className="text-center py-8 text-white/60">
+            <div className="text-center py-8 text-white/60 lg:col-span-2">
               <Trophy size={48} className="mx-auto mb-4 opacity-50" />
               <p>No achievements unlocked yet</p>
               <p className="text-sm">Start studying to unlock your first achievement!</p>
@@ -154,12 +158,14 @@ export function Achievements({ achievements }: AchievementsProps) {
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-3">
-          {achievements
-            .filter(a => !a.unlocked)
-            .sort((a, b) => (b.progress / b.requirement) - (a.progress / a.requirement))
-            .map(renderAchievementCard)}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+            {achievements
+              .filter(a => !a.unlocked)
+              .sort((a, b) => (b.progress / b.requirement) - (a.progress / a.requirement))
+              .map(renderAchievementCard)}
+          </div>
           {achievements.filter(a => !a.unlocked).length === 0 && (
-            <div className="text-center py-8 text-white/60">
+            <div className="text-center py-8 text-white/60 lg:col-span-2">
               <Trophy size={48} className="mx-auto mb-4 text-accent" />
               <p>All achievements unlocked!</p>
               <p className="text-sm">You're a true study champion! 🎉</p>

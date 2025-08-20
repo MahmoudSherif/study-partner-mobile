@@ -688,12 +688,12 @@ function AppContent() {
       <SyncIndicator />
       {!isStandalone && <PWAInstallPrompt />}
       
-      <div className="relative z-10 container max-w-md mx-auto p-4 pb-28 no-select">
+      <div className="relative z-10 container max-w-md lg:max-w-4xl xl:max-w-6xl mx-auto p-4 pb-28 no-select">
         <header className="text-center py-6">
-          <h1 className="text-2xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
-          <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
+          <h1 className="text-2xl lg:text-4xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
+          <p className="text-white/80 text-sm lg:text-base drop-shadow">Your mobile study companion</p>
           {user && (
-            <div className="mt-2 text-xs text-white/60">
+            <div className="mt-2 text-xs lg:text-sm text-white/60">
               Connected as {user.displayName || user.email?.split('@')[0]}
             </div>
           )}
@@ -702,39 +702,39 @@ function AppContent() {
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
           <div className="sticky top-0 bg-black/20 backdrop-blur-md z-20 py-2 rounded-lg border border-white/10">
             <TabsList className="grid w-full grid-cols-7 bg-white/10 backdrop-blur-sm">
-              <TabsTrigger value="achieve" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <Target size={16} />
-                <span className="text-xs">Achieve</span>
+              <TabsTrigger value="achieve" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Target size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Achieve</span>
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <CheckSquare size={16} />
-                <span className="text-xs">Tasks</span>
+              <TabsTrigger value="tasks" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CheckSquare size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Tasks</span>
               </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <CalendarIcon size={16} />
-                <span className="text-xs">Calendar</span>
+              <TabsTrigger value="calendar" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <CalendarIcon size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Calendar</span>
               </TabsTrigger>
-              <TabsTrigger value="notes" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <StickyNote size={16} />
-                <span className="text-xs">Notes</span>
+              <TabsTrigger value="notes" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <StickyNote size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Notes</span>
               </TabsTrigger>
-              <TabsTrigger value="profile" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <User size={16} />
-                <span className="text-xs">Profile</span>
+              <TabsTrigger value="profile" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <User size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Profile</span>
               </TabsTrigger>
-              <TabsTrigger value="achievements" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <Trophy size={16} />
-                <span className="text-xs">Awards</span>
+              <TabsTrigger value="achievements" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Trophy size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Awards</span>
               </TabsTrigger>
-              <TabsTrigger value="inspiration" className="flex-col gap-1 h-14 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
-                <Lightbulb size={16} />
-                <span className="text-xs">Inspire</span>
+              <TabsTrigger value="inspiration" className="flex-col lg:flex-row gap-1 lg:gap-2 h-14 lg:h-12 text-white data-[state=active]:bg-white/20 data-[state=active]:text-white transition-all duration-200">
+                <Lightbulb size={16} className="lg:size-5" />
+                <span className="text-xs lg:text-sm">Inspire</span>
               </TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="achieve" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <AchieveTab 
                 achievements={achievements}
                 onUpdateAchievements={handleUpdateAchievements}
@@ -743,7 +743,7 @@ function AppContent() {
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <TasksManagement
                 tasks={tasks}
                 challenges={challenges}
@@ -764,31 +764,31 @@ function AppContent() {
           </TabsContent>
 
           <TabsContent value="calendar" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <Calendar subjects={subjects} />
             </div>
           </TabsContent>
 
           <TabsContent value="notes" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <NotesTab />
             </div>
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <ProfileTab stats={stats} achievements={achievements} sessions={allSessions} />
             </div>
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <Achievements achievements={achievements} />
             </div>
           </TabsContent>
 
           <TabsContent value="inspiration" className="space-y-4 m-0">
-            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
+            <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4 lg:p-6">
               <InspirationCarousel />
             </div>
           </TabsContent>

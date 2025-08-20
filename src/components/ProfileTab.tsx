@@ -147,7 +147,7 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
           <ActivityCharts sessions={allActivitySessions} />
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
                 <Clock size={24} className="mx-auto text-primary mb-2" />
@@ -182,7 +182,7 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
           </div>
 
           {/* Weekly Progress and Best Time */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
             <Card>
               <CardContent className="p-4 text-center">
                 <Calendar size={24} className="mx-auto text-primary mb-2" />

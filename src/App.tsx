@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { ProfileTab } from '@/components/ProfileTab'
 import { ProgressCharts } from '@/components/ProgressCharts'
 import { Achievements } from '@/components/Achievements'
@@ -117,7 +115,6 @@ function AppContent() {
   const [currentTab, setCurrentTab] = useState('achieve')
   
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null)
-  const [completionDialogOpen, setCompletionDialogOpen] = useState(false)
   const [lastSessionDuration, setLastSessionDuration] = useState(0)
   const [celebrationData, setCelebrationData] = useState<{
     isOpen: boolean
@@ -466,7 +463,6 @@ function AppContent() {
       mobileFeedback.studySessionComplete()
 
       setLastSessionDuration(Math.round(duration))
-      setCompletionDialogOpen(true)
       
       toast.success(`Great job! You studied ${selectedSubject.name} for ${Math.round(duration)} minutes.`)
     } catch (error) {
@@ -800,30 +796,6 @@ function AppContent() {
 
       <QuotesBar />
       <DeviceIndicator />
-
-      <Dialog open={completionDialogOpen} onOpenChange={setCompletionDialogOpen}>
-        <DialogContent className="bg-black/80 backdrop-blur-md border-white/20 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-center text-white">🎉 Session Complete!</DialogTitle>
-          </DialogHeader>
-          <div className="text-center space-y-4">
-            <div className="bg-accent/20 rounded-lg p-4 border border-accent/30">
-              <div className="text-2xl font-bold text-accent">
-                {lastSessionDuration} minutes
-              </div>
-              <div className="text-sm text-white/70">
-                Great focus on {selectedSubject?.name}!
-              </div>
-            </div>
-            <Button 
-              onClick={() => setCompletionDialogOpen(false)}
-              className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              Continue Studying
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <TaskCelebration
         isOpen={celebrationData.isOpen}

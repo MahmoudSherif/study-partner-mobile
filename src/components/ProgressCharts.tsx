@@ -12,12 +12,47 @@ interface ProgressChartsProps {
   subjects: Subject[]
 }
 
+// Error boundary wrapper for subject charts
+function SubjectChartsWrapper({ children, currentSubject }: { children: React.ReactNode, currentSubject: Subject | null }) {
+  if (!currentSubject) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <BookOpen size={48} className="text-white/50 mb-4" />
+          <h3 className="font-medium mb-2 text-white">Subject Not Found</h3>
+          <p className="text-sm text-white/70 text-center">
+            Please select a valid subject to view charts
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+  
+  try {
+    return <>{children}</>
+  } catch (error) {
+    console.error('Error rendering subject charts:', error)
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-8">
+          <BookOpen size={48} className="text-white/50 mb-4" />
+          <h3 className="font-medium mb-2 text-white">Error Loading Charts</h3>
+          <p className="text-sm text-white/70 text-center">
+            There was an issue loading the charts for this subject
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+}
+
 export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   const [selectedSubject, setSelectedSubject] = useState<string>('')
   
   // Safely calculate chart data with error handling
   const weeklyData = useMemo(() => {
     try {
+      if (!sessions || !Array.isArray(sessions)) return []
       return getWeeklyData(sessions)
     } catch (error) {
       console.error('Error calculating weekly data:', error)
@@ -27,6 +62,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const monthlyData = useMemo(() => {
     try {
+      if (!sessions || !Array.isArray(sessions)) return []
       return getMonthlyData(sessions)
     } catch (error) {
       console.error('Error calculating monthly data:', error)
@@ -36,6 +72,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const dailyData = useMemo(() => {
     try {
+      if (!sessions || !Array.isArray(sessions) || !subjects || !Array.isArray(subjects)) return []
       return getDailyData(sessions, subjects)
     } catch (error) {
       console.error('Error calculating daily data:', error)
@@ -45,7 +82,8 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const subjectWeeklyData = useMemo(() => {
     try {
-      if (!subjects || subjects.length === 0) return {}
+      if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return {}
+      if (!sessions || !Array.isArray(sessions)) return {}
       return getSubjectWeeklyData(sessions, subjects)
     } catch (error) {
       console.error('Error calculating subject weekly data:', error)
@@ -55,7 +93,8 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const subjectMonthlyData = useMemo(() => {
     try {
-      if (!subjects || subjects.length === 0) return {}
+      if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return {}
+      if (!sessions || !Array.isArray(sessions)) return {}
       return getSubjectMonthlyData(sessions, subjects)
     } catch (error) {
       console.error('Error calculating subject monthly data:', error)
@@ -65,7 +104,8 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const subjectComparison = useMemo(() => {
     try {
-      if (!subjects || subjects.length === 0) return []
+      if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return []
+      if (!sessions || !Array.isArray(sessions)) return []
       return getSubjectComparison(sessions, subjects)
     } catch (error) {
       console.error('Error calculating subject comparison:', error)
@@ -75,7 +115,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
 
   // Initialize selected subject on first load or when subjects change
   useEffect(() => {
-    if (subjects.length > 0) {
+    if (subjects && subjects.length > 0) {
       // If no subject is selected or current selection is invalid, select first subject
       if (!selectedSubject || !subjects.find(s => s.id === selectedSubject)) {
         setSelectedSubject(subjects[0].id)
@@ -84,14 +124,21 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       // Clear selection if no subjects exist
       setSelectedSubject('')
     }
-  }, [subjects, selectedSubject])
+  }, [subjects])
 
   // Get current subject data safely
-  const currentSubjectId = selectedSubject && subjects.find(s => s.id === selectedSubject) 
-    ? selectedSubject 
-    : (subjects.length > 0 ? subjects[0].id : '')
+  const currentSubjectId = useMemo(() => {
+    if (!subjects || subjects.length === 0) return ''
+    if (selectedSubject && subjects.find(s => s.id === selectedSubject)) {
+      return selectedSubject
+    }
+    return subjects[0]?.id || ''
+  }, [selectedSubject, subjects])
   
-  const currentSubject = subjects.find(s => s.id === currentSubjectId)
+  const currentSubject = useMemo(() => {
+    if (!subjects || !currentSubjectId) return null
+    return subjects.find(s => s.id === currentSubjectId) || null
+  }, [subjects, currentSubjectId])
 
   return (
     <div className="space-y-4">
@@ -308,8 +355,8 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="subjects" className="space-y-4">
-          {subjects.length === 0 ? (
+        <TabsContent value="subjects" className="space-y-4" key={`subjects-${currentSubjectId}`}>
+          {!subjects || subjects.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-8">
                 <BookOpen size={48} className="text-white/50 mb-4" />
@@ -331,24 +378,26 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                 </CardHeader>
                 <CardContent>
                   <Select 
-                    value={currentSubjectId} 
+                    value={currentSubjectId || ''} 
                     onValueChange={(value) => {
                       try {
                         // Ensure the selected subject actually exists before setting it
+                        if (!value) return
+                        
                         const selectedSubjectExists = subjects.find(s => s.id === value)
                         if (selectedSubjectExists) {
                           setSelectedSubject(value)
                         } else {
                           console.warn('Selected subject does not exist:', value)
                           // Fallback to first subject if selection is invalid
-                          if (subjects.length > 0) {
+                          if (subjects && subjects.length > 0) {
                             setSelectedSubject(subjects[0].id)
                           }
                         }
                       } catch (error) {
                         console.error('Error changing subject:', error)
                         // Reset to first subject if there's an error
-                        if (subjects.length > 0) {
+                        if (subjects && subjects.length > 0) {
                           setSelectedSubject(subjects[0].id)
                         }
                       }
@@ -358,7 +407,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                       <SelectValue placeholder="Select a subject" />
                     </SelectTrigger>
                     <SelectContent className="bg-black/90 border-white/20">
-                      {subjects.map(subject => (
+                      {subjects && subjects.map(subject => (
                         <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-white/10">
                           <div className="flex items-center gap-2">
                             <div 
@@ -375,52 +424,58 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </Card>
 
               {/* Subject Weekly Progress */}
-              {currentSubject && currentSubjectId && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2 text-white">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: currentSubject.color }}
-                      ></div>
-                      {currentSubject.name} - Weekly Progress
-                    </CardTitle>
-                    <p className="text-sm text-white/70">
-                      Study time over the last 4 weeks
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={subjectWeeklyData[currentSubjectId] || []}>
-                          <XAxis 
-                            dataKey="week" 
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                          />
-                          <YAxis 
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
-                          />
-                          <Area 
-                            type="monotone" 
-                            dataKey="minutes" 
-                            stroke={currentSubject.color}
-                            fill={currentSubject.color}
-                            fillOpacity={0.15}
-                            strokeWidth={2}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <SubjectChartsWrapper currentSubject={currentSubject}>
+                {currentSubject && currentSubjectId && subjectWeeklyData && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2 text-white">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: currentSubject.color }}
+                        ></div>
+                        {currentSubject.name} - Weekly Progress
+                      </CardTitle>
+                      <p className="text-sm text-white/70">
+                        Study time over the last 4 weeks
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={subjectWeeklyData[currentSubjectId] || []}>
+                            <XAxis 
+                              dataKey="week" 
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                            />
+                            <YAxis 
+                              axisLine={false}
+                              tickLine={false}
+                              tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
+                            />
+                            {currentSubject && (
+                              <Area 
+                                type="monotone" 
+                                dataKey="minutes" 
+                                stroke={currentSubject.color}
+                                fill={currentSubject.color}
+                                fillOpacity={0.15}
+                                strokeWidth={2}
+                              />
+                            )}
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </SubjectChartsWrapper>
+              </SubjectChartsWrapper>
 
               {/* Subject Monthly Trends */}
-              {currentSubject && currentSubjectId && subjectMonthlyData[currentSubjectId] && subjectMonthlyData[currentSubjectId].length > 0 && (
+              <SubjectChartsWrapper currentSubject={currentSubject}>
+                {currentSubject && currentSubjectId && subjectMonthlyData && subjectMonthlyData[currentSubjectId] && subjectMonthlyData[currentSubjectId].length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2 text-white">
@@ -449,13 +504,15 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                             tickLine={false}
                             tick={{ fontSize: 12, fill: 'rgba(255, 255, 255, 0.7)' }}
                           />
-                          <Line 
-                            type="monotone" 
-                            dataKey="minutes" 
-                            stroke={currentSubject.color}
-                            strokeWidth={3}
-                            dot={{ fill: currentSubject.color, strokeWidth: 2, r: 4 }}
-                          />
+                          {currentSubject && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="minutes" 
+                              stroke={currentSubject.color}
+                              strokeWidth={3}
+                              dot={{ fill: currentSubject.color, strokeWidth: 2, r: 4 }}
+                            />
+                          )}
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
@@ -532,7 +589,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                         <span className="font-medium text-white">{currentSubject.totalTime} minutes</span>
                       </div>
                       
-                      {subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
+                      {subjectWeeklyData && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white/70">This Week</span>
                           <span className="font-medium text-white">
@@ -541,7 +598,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                         </div>
                       )}
                       
-                      {subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
+                      {subjectWeeklyData && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white/70">Weekly Average</span>
                           <span className="font-medium text-white">

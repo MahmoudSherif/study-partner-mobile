@@ -14,7 +14,7 @@ export function NotificationSettings() {
   const [permission, setPermission] = useState<NotificationPermission>('default')
   const [showTestDialog, setShowTestDialog] = useState(false)
   const [testTitle, setTestTitle] = useState('Test Achievement!')
-  const [testMessage, setTestMessage] = useState('This is a test notification from StudyPartner')
+  const [testMessage, setTestMessage] = useState('This is a test notification from MotivaMate')
 
   useEffect(() => {
     const checkSupport = () => {

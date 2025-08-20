@@ -2,7 +2,7 @@
 
 ## 🔐 Getting Started with Authentication
 
-StudyPartner now includes user authentication and cloud data synchronization! This means your data is securely stored and accessible across all your devices.
+MotivaMate now includes user authentication and cloud data synchronization! This means your data is securely stored and accessible across all your devices.
 
 ### Sign Up Process
 1. **Open the app** - You'll see the authentication screen
@@ -69,7 +69,7 @@ Look for the cloud icon in the top-right corner:
 ## 📱 Multi-Device Usage
 
 ### Setting Up Additional Devices
-1. **Download/open StudyPartner** on your new device
+1. **Download/open MotivaMate** on your new device
 2. **Sign in** with the same credentials
 3. **Wait for sync** - your data will appear automatically
 4. **Start using** - all your progress is available instantly
@@ -95,5 +95,5 @@ Look for the cloud icon in the top-right corner:
 
 ---
 
-**Welcome to the enhanced StudyPartner experience!** 🎉  
+**Welcome to the enhanced MotivaMate experience!** 🎉  
 Your study data is now secure, synchronized, and accessible anywhere you go.

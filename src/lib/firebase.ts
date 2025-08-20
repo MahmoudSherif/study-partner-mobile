@@ -26,9 +26,9 @@ import {
 // NOTE: In a real app, these would be environment variables
 const firebaseConfig = {
   apiKey: "AIzaSyDemo_API_Key_Replace_With_Real_One",
-  authDomain: "studypartner-demo.firebaseapp.com", 
-  projectId: "studypartner-demo",
-  storageBucket: "studypartner-demo.appspot.com",
+  authDomain: "motivamate-demo.firebaseapp.com", 
+  projectId: "motivamate-demo",
+  storageBucket: "motivamate-demo.appspot.com",
   messagingSenderId: "1234567890",
   appId: "1:1234567890:web:demo123456789abc"
 }

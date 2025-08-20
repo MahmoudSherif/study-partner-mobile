@@ -1,6 +1,6 @@
 {
-  "name": "StudyPartner",
-  "short_name": "StudyPartner",
+  "name": "MotivaMate",
+  "short_name": "MotivaMate",
   "description": "Your mobile study companion with timer, tasks, and progress tracking",
   "start_url": "/",
   "display": "standalone",

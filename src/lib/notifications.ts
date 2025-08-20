@@ -1,4 +1,4 @@
-// Notification utilities for StudyPartner
+// Notification utilities for MotivaMate
 // Handles push notifications for goals and challenges
 
 export interface NotificationData {
@@ -88,7 +88,7 @@ export class NotificationManager {
         body: data.body,
         icon: data.icon || '/icons/favicon-32x32.png',
         badge: data.badge || '/icons/favicon-16x16.png',
-        tag: data.tag || 'studypartner-notification',
+        tag: data.tag || 'motivamate-notification',
         data: data.data || {},
         actions: data.actions || [],
         vibrate: data.vibrate || [200, 100, 200],

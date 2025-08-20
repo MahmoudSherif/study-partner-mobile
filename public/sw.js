@@ -1,7 +1,7 @@
-// Service Worker for StudyPartner PWA
+// Service Worker for MotivaMate PWA
 // Handles push notifications, background sync, and caching
 
-const CACHE_NAME = 'studypartner-v1';
+const CACHE_NAME = 'motivamate-v1';
 const urlsToCache = [
   '/',
   '/src/main.css',
@@ -60,7 +60,7 @@ self.addEventListener('push', (event) => {
       body: data.body,
       icon: '/icons/favicon-32x32.png',
       badge: '/icons/favicon-16x16.png',
-      tag: data.tag || 'studypartner-notification',
+      tag: data.tag || 'motivamate-notification',
       data: data.data || {},
       actions: data.actions || [],
       vibrate: data.vibrate || [200, 100, 200],
@@ -76,10 +76,10 @@ self.addEventListener('push', (event) => {
     console.error('Error showing notification:', error);
     // Fallback notification
     event.waitUntil(
-      self.registration.showNotification('StudyPartner Update', {
+      self.registration.showNotification('MotivaMate Update', {
         body: 'You have a new achievement or update!',
         icon: '/icons/favicon-32x32.png',
-        tag: 'studypartner-fallback'
+        tag: 'motivamate-fallback'
       })
     );
   }

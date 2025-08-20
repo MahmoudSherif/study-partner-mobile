@@ -42,7 +42,7 @@ export function PWAInstallPrompt() {
         <DialogContent className="bg-black/90 backdrop-blur-md border-white/20 text-white max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-center text-white flex items-center justify-between">
-              Install StudyPartner
+              Install MotivaMate
               <Button
                 variant="ghost"
                 size="sm"
@@ -58,7 +58,7 @@ export function PWAInstallPrompt() {
             <div className="text-center space-y-2">
               <div className="text-4xl">📱</div>
               <p className="text-sm text-white/80">
-                Install StudyPartner on your device for the best experience!
+                Install MotivaMate on your device for the best experience!
               </p>
             </div>
             

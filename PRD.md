@@ -1,4 +1,4 @@
-# StudyPartner Mobile Web App
+# MotivaMate Mobile Web App
 
 A mobile-first study companion application that helps students organize their learning, track progress, and stay motivated through gamification and social features.
 

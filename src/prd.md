@@ -1,12 +1,12 @@
-# StudyPartner - Mobile Study Companion PRD
+# MotivaMate - Mobile Study Companion PRD
 
 ## Core Purpose & Success
 
-# StudyPartner - Mobile Study Companion PRD
+# MotivaMate - Mobile Study Companion PRD
 
 ## Core Purpose & Success
 
-**Mission Statement**: StudyPartner is a mobile-first, cloud-synced study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with user authentication and seamless data synchronization.
+**Mission Statement**: MotivaMate is a mobile-first, cloud-synced study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with user authentication and seamless data synchronization.
 
 **Success Indicators**: 
 - Users consistently track focus sessions and achieve daily/weekly goals across devices

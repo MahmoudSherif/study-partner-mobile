@@ -1,7 +1,7 @@
 # Haptic Feedback Implementation
 
 ## Overview
-Enhanced the StudyPartner mobile app with comprehensive haptic feedback and audio feedback to provide tactile responses for user interactions.
+Enhanced the MotivaMate mobile app with comprehensive haptic feedback and audio feedback to provide tactile responses for user interactions.
 
 ## Implemented Features
 

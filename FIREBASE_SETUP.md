@@ -6,7 +6,7 @@ To connect this app to your Firebase project:
 2. Create a new project or select an existing one
 3. Go to Project Settings > General > Your apps
 4. Click "Add app" and select "Web"
-5. Register your app with a nickname (e.g., "StudyPartner Web")
+5. Register your app with a nickname (e.g., "MotivaMate Web")
 6. Copy the configuration object
 7. Replace the configuration in `src/lib/firebase.ts` with your actual values
 

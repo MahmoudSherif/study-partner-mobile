@@ -72,7 +72,7 @@ export const AuthScreen = () => {
     if (error) {
       toast.error(error)
     } else if (user) {
-      toast.success('Account created successfully! Welcome to StudyPartner! 🎉')
+      toast.success('Account created successfully! Welcome to MotivaMate! 🎉')
     }
     setLoading(false)
   }
@@ -84,7 +84,7 @@ export const AuthScreen = () => {
     if (error) {
       toast.error(error)
     } else if (user) {
-      toast.success('Welcome to StudyPartner! 🎉')
+      toast.success('Welcome to MotivaMate! 🎉')
     }
     setLoading(false)
   }
@@ -97,7 +97,7 @@ export const AuthScreen = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkle size={32} className="text-accent" weight="fill" />
-            <h1 className="text-3xl font-bold text-white">StudyPartner</h1>
+            <h1 className="text-3xl font-bold text-white">MotivaMate</h1>
           </div>
           <p className="text-white/80">Your mobile study companion</p>
         </div>

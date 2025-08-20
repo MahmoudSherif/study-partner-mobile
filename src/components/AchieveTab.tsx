@@ -148,7 +148,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       duration: sessionMinutes, // store in minutes
       endTime: new Date(),
       completed: true
-    }
+    };
 
     // Save session
     setFocusSessions(current => {
@@ -159,7 +159,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     // Update goals progress
     updateGoalsProgress(sessionMinutes).catch(error => {
       // Silent error handling for goals progress
-    })
+    });
 
     // Reset timer state
     setCurrentSession(null)

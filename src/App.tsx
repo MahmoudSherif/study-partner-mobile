@@ -130,9 +130,6 @@ function AppContent() {
     }
   }, [])
 
-  // User-specific data keys - each user has their own data namespace
-  const userDataKey = (key: string) => `${currentUserId}-${key}`
-  
   const [subjects, setSubjects] = useKV<Subject[]>(userDataKey('study-subjects'), [])
   const [sessions, setSessions] = useKV<StudySession[]>(userDataKey('study-sessions'), [])
   const [achievements, setAchievements] = useKV<Achievement[]>(userDataKey('achievements'), INITIAL_ACHIEVEMENTS)

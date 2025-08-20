@@ -716,7 +716,7 @@ function AppContent() {
       
       <div className="relative z-10 container max-w-md mx-auto p-4 pb-28 no-select">
         <header className="text-center py-6">
-          <h1 className="text-2xl font-bold text-white drop-shadow-lg">StudyPartner</h1>
+          <h1 className="text-2xl font-bold text-white drop-shadow-lg">MotivaMate</h1>
           <p className="text-white/80 text-sm drop-shadow">Your mobile study companion</p>
         </header>
 

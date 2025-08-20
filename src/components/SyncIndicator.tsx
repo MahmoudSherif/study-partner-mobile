@@ -1,79 +1,59 @@
 import { useState, useEffect } from 'react'
-import { CloudCheck, CloudX, CloudArrowUp } from '@phosphor-icons/react'
-import { dataSyncService } from '@/lib/dataSync'
+import { CloudCheck, CloudX, CloudArrowUp, LinkSimple, LinkSimpleBreak } from '@phosphor-icons/react'
+import { useDataSync } from '@/lib/sync'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/ui/button'
 
 export const SyncIndicator = () => {
-  const { user } = useAuth()
-  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'offline'>('synced')
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null)
-
-  useEffect(() => {
-    if (!user) {
-      setSyncStatus('offline')
-      return
-    }
-
-    // Listen for sync events
-    const handleDataSync = () => {
-      setSyncStatus('synced')
-      setLastSyncTime(new Date())
-    }
-
-    const handleSyncStart = () => {
-      setSyncStatus('syncing')
-    }
-
-    const handleSyncError = () => {
-      setSyncStatus('error')
-    }
-
-    // Add event listeners
-    window.addEventListener('dataSync', handleDataSync)
-    window.addEventListener('syncStart', handleSyncStart)
-    window.addEventListener('syncError', handleSyncError)
-
-    // Set initial sync time using user-scoped key
-    const lastSync = user ? localStorage.getItem(`${user.uid}-lastSyncAt`) : null
-    if (lastSync) {
-      setLastSyncTime(new Date(lastSync))
-    }
-
-    return () => {
-      window.removeEventListener('dataSync', handleDataSync)
-      window.removeEventListener('syncStart', handleSyncStart)
-      window.removeEventListener('syncError', handleSyncError)
-    }
-  }, [user])
-
-  if (!user) return null
+  const { user, isConnectedToStudyPartner, checkConnection } = useAuth()
+  const { syncStatus, forceSync } = useDataSync()
 
   const getIcon = () => {
-    switch (syncStatus) {
-      case 'synced':
-        return <CloudCheck size={16} className="text-green-400" />
-      case 'syncing':
-        return <CloudArrowUp size={16} className="text-blue-400 animate-pulse" />
-      case 'error':
-        return <CloudX size={16} className="text-red-400" />
-      default:
-        return <CloudX size={16} className="text-gray-400" />
+    if (!isConnectedToStudyPartner) {
+      return <LinkSimpleBreak size={16} className="text-yellow-400" />
     }
+    
+    if (syncStatus.isSyncing) {
+      return <CloudArrowUp size={16} className="text-blue-400 animate-pulse" />
+    }
+    
+    if (syncStatus.error) {
+      return <CloudX size={16} className="text-red-400" />
+    }
+    
+    if (!syncStatus.isOnline) {
+      return <CloudX size={16} className="text-gray-400" />
+    }
+    
+    return <CloudCheck size={16} className="text-green-400" />
   }
 
   const getStatusText = () => {
-    switch (syncStatus) {
-      case 'synced':
-        return lastSyncTime ? `Synced ${formatTimeAgo(lastSyncTime)}` : 'Synced'
-      case 'syncing':
-        return 'Syncing...'
-      case 'error':
-        return 'Sync failed'
-      case 'offline':
-        return 'Offline'
-      default:
-        return 'Unknown'
+    if (!isConnectedToStudyPartner) {
+      return 'StudyPartner disconnected'
     }
+    
+    if (syncStatus.isSyncing) {
+      return 'Syncing...'
+    }
+    
+    if (syncStatus.error) {
+      return 'Sync failed'
+    }
+    
+    if (!syncStatus.isOnline) {
+      return 'Offline'
+    }
+    
+    if (syncStatus.pendingChanges > 0) {
+      return `${syncStatus.pendingChanges} pending`
+    }
+    
+    if (syncStatus.lastSyncAt) {
+      return `Synced ${formatTimeAgo(syncStatus.lastSyncAt)}`
+    }
+    
+    return 'Ready to sync'
   }
 
   const formatTimeAgo = (date: Date) => {
@@ -91,12 +71,28 @@ export const SyncIndicator = () => {
     return `${diffDays}d ago`
   }
 
+  const handleSyncClick = async () => {
+    if (!isConnectedToStudyPartner) {
+      await checkConnection()
+    } else {
+      await forceSync()
+    }
+  }
+
+  if (!user) return null
+
   return (
-    <div className="fixed top-4 right-4 z-50 bg-black/40 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
-      <div className="flex items-center gap-2">
+    <div className="fixed top-4 right-4 z-50 bg-black/40 backdrop-blur-sm rounded-lg border border-white/10">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleSyncClick}
+        disabled={syncStatus.isSyncing}
+        className="flex items-center gap-2 px-3 py-2 h-auto text-white/80 hover:text-white hover:bg-white/10"
+      >
         {getIcon()}
-        <span className="text-xs text-white/80">{getStatusText()}</span>
-      </div>
+        <span className="text-xs">{getStatusText()}</span>
+      </Button>
     </div>
   )
 }

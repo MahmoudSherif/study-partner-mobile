@@ -1,18 +1,25 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { studyPartnerAPI, APIUser, handleAPIError, checkStudyPartnerConnection } from '@/lib/api'
+import { dataSyncService } from '@/lib/sync'
+import { toast } from 'sonner'
 
 interface User {
   uid: string
   email: string | null
   displayName: string | null
+  avatar?: string
+  isFromStudyPartner?: boolean
 }
 
 interface AuthContextType {
   user: User | null
   loading: boolean
+  isConnectedToStudyPartner: boolean
   signUp: (email: string, password: string, displayName?: string) => Promise<{ user: User | null; error: string | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: string | null }>
   signInWithGoogle: () => Promise<{ user: User | null; error: string | null }>
   signOut: () => Promise<{ error: string | null }>
+  checkConnection: () => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -32,19 +39,65 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isConnectedToStudyPartner, setIsConnectedToStudyPartner] = useState(false)
 
-  // Check for existing user session on app start
+  // Check StudyPartner connection on startup
   useEffect(() => {
-    const savedUser = localStorage.getItem('motivamate-user')
-    if (savedUser) {
+    const checkConnection = async () => {
       try {
-        const parsedUser = JSON.parse(savedUser)
-        setUser(parsedUser)
+        const connected = await checkStudyPartnerConnection()
+        setIsConnectedToStudyPartner(connected)
+        
+        if (connected) {
+          // Try to get current user from StudyPartner if we have a token
+          const authToken = studyPartnerAPI.getAuthToken()
+          if (authToken) {
+            const userResponse = await studyPartnerAPI.getCurrentUser()
+            if (userResponse.success && userResponse.data) {
+              const apiUser = userResponse.data
+              const user: User = {
+                uid: apiUser.id,
+                email: apiUser.email,
+                displayName: apiUser.displayName,
+                avatar: apiUser.avatar,
+                isFromStudyPartner: true
+              }
+              setUser(user)
+              localStorage.setItem('motivamate-user', JSON.stringify(user))
+              return
+            }
+          }
+        }
+        
+        // Fallback to local storage if StudyPartner is not available
+        const savedUser = localStorage.getItem('motivamate-user')
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser)
+            setUser(parsedUser)
+          } catch (error) {
+            localStorage.removeItem('motivamate-user')
+          }
+        }
       } catch (error) {
-        localStorage.removeItem('motivamate-user')
+        console.warn('Failed to check StudyPartner connection:', error)
+        
+        // Fallback to local auth
+        const savedUser = localStorage.getItem('motivamate-user')
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser)
+            setUser(parsedUser)
+          } catch (error) {
+            localStorage.removeItem('motivamate-user')
+          }
+        }
+      } finally {
+        setLoading(false)
       }
     }
-    setLoading(false)
+
+    checkConnection()
   }, [])
 
   const generateUserId = () => {
@@ -55,32 +108,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     
     try {
-      // Check if user already exists
+      // First try StudyPartner API
+      if (isConnectedToStudyPartner) {
+        const response = await studyPartnerAPI.signUp(
+          email, 
+          password, 
+          displayName || email.split('@')[0]
+        )
+        
+        if (response.success && response.data) {
+          const apiUser = response.data.user
+          const user: User = {
+            uid: apiUser.id,
+            email: apiUser.email,
+            displayName: apiUser.displayName,
+            avatar: apiUser.avatar,
+            isFromStudyPartner: true
+          }
+          
+          setUser(user)
+          localStorage.setItem('motivamate-user', JSON.stringify(user))
+          
+          // Start data sync
+          await dataSyncService.performSync()
+          
+          setLoading(false)
+          toast.success('Account created and synced with StudyPartner!')
+          return { user, error: null }
+        } else {
+          const errorMessage = handleAPIError(response.error || 'Registration failed')
+          setLoading(false)
+          return { user: null, error: errorMessage }
+        }
+      }
+      
+      // Fallback to local storage
       const existingUsers = JSON.parse(localStorage.getItem('motivamate-users') || '{}')
       if (existingUsers[email]) {
         setLoading(false)
         return { user: null, error: 'User already exists with this email' }
       }
 
-      // Create new user
       const newUser: User = {
         uid: generateUserId(),
         email,
-        displayName: displayName || email.split('@')[0]
+        displayName: displayName || email.split('@')[0],
+        isFromStudyPartner: false
       }
 
-      // Save user credentials (in production, passwords should be hashed)
       existingUsers[email] = {
         user: newUser,
-        password // Note: In real production, this should be hashed
+        password
       }
       localStorage.setItem('motivamate-users', JSON.stringify(existingUsers))
 
-      // Set current user
       setUser(newUser)
       localStorage.setItem('motivamate-user', JSON.stringify(newUser))
 
       setLoading(false)
+      toast.info('Account created locally. Connect to StudyPartner to sync across devices.')
       return { user: newUser, error: null }
     } catch (error: any) {
       setLoading(false)
@@ -92,6 +178,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     
     try {
+      // First try StudyPartner API
+      if (isConnectedToStudyPartner) {
+        const response = await studyPartnerAPI.signIn(email, password)
+        
+        if (response.success && response.data) {
+          const apiUser = response.data.user
+          const user: User = {
+            uid: apiUser.id,
+            email: apiUser.email,
+            displayName: apiUser.displayName,
+            avatar: apiUser.avatar,
+            isFromStudyPartner: true
+          }
+          
+          setUser(user)
+          localStorage.setItem('motivamate-user', JSON.stringify(user))
+          
+          // Start data sync
+          await dataSyncService.performSync()
+          
+          setLoading(false)
+          toast.success('Signed in and synced with StudyPartner!')
+          return { user, error: null }
+        } else {
+          // Try local fallback if StudyPartner auth fails
+          const errorMessage = handleAPIError(response.error || 'Sign in failed')
+          
+          // Don't return error immediately, try local auth first
+          console.warn('StudyPartner auth failed, trying local auth:', errorMessage)
+        }
+      }
+      
+      // Fallback to local storage
       const existingUsers = JSON.parse(localStorage.getItem('motivamate-users') || '{}')
       const userRecord = existingUsers[email]
 
@@ -100,11 +219,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { user: null, error: 'Invalid email or password' }
       }
 
-      // Set current user
       setUser(userRecord.user)
       localStorage.setItem('motivamate-user', JSON.stringify(userRecord.user))
 
       setLoading(false)
+      if (isConnectedToStudyPartner) {
+        toast.info('Signed in locally. Your StudyPartner account may have different credentials.')
+      }
       return { user: userRecord.user, error: null }
     } catch (error: any) {
       setLoading(false)
@@ -115,18 +236,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signInWithGoogle = async () => {
     setLoading(true)
     
-    // For demo purposes, create a demo Google user
     try {
+      // Try StudyPartner Google auth if available
+      if (isConnectedToStudyPartner) {
+        // This would need actual Google OAuth integration
+        // For now, show a message that this needs Google setup
+        setLoading(false)
+        return { 
+          user: null, 
+          error: 'Google sign-in requires proper OAuth setup with StudyPartner integration' 
+        }
+      }
+      
+      // Fallback demo user for local testing
       const demoUser: User = {
         uid: generateUserId(),
         email: 'demo@gmail.com',
-        displayName: 'Demo User'
+        displayName: 'Demo User',
+        isFromStudyPartner: false
       }
 
       setUser(demoUser)
       localStorage.setItem('motivamate-user', JSON.stringify(demoUser))
 
       setLoading(false)
+      toast.info('Demo Google user created locally')
       return { user: demoUser, error: null }
     } catch (error: any) {
       setLoading(false)
@@ -138,8 +272,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(true)
     
     try {
+      // Sign out from StudyPartner if connected
+      if (isConnectedToStudyPartner && user?.isFromStudyPartner) {
+        await studyPartnerAPI.signOut()
+      }
+      
       setUser(null)
       localStorage.removeItem('motivamate-user')
+      
       setLoading(false)
       return { error: null }
     } catch (error: any) {
@@ -148,13 +288,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
+  const checkConnection = async (): Promise<boolean> => {
+    try {
+      const connected = await checkStudyPartnerConnection()
+      setIsConnectedToStudyPartner(connected)
+      return connected
+    } catch {
+      setIsConnectedToStudyPartner(false)
+      return false
+    }
+  }
+
   const value: AuthContextType = {
     user,
     loading,
+    isConnectedToStudyPartner,
     signUp,
     signIn,
     signInWithGoogle,
-    signOut
+    signOut,
+    checkConnection
   }
 
   return (

@@ -2,51 +2,56 @@
 
 ## Core Purpose & Success
 
-**Mission Statement**: MotivaMate is a production-ready, mobile-first study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with local authentication and data persistence.
+**Mission Statement**: MotivaMate is a production-ready, mobile-first study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with cross-platform synchronization via StudyPartner integration.
 
 **Success Indicators**: 
-- Users can create accounts and maintain sessions locally
-- Study sessions and progress data persist reliably using local storage
+- Users can create accounts that work across both MotivaMate and StudyPartner platforms
+- Study sessions and progress data sync seamlessly between applications
 - Task completion rates improve through gamification and challenges
-- Achievement system motivates continued usage with personalized user profiles
-- Data persistence ensures reliable user experience across sessions
-- Production-ready functionality without external dependencies
+- Achievement system motivates continued usage with cross-platform recognition
+- Data synchronization ensures consistent experience across devices and platforms
+- Production-ready functionality with robust backend integration
 
-**Experience Qualities**: Reliable, Motivating, Organized, Independent
+**Experience Qualities**: Connected, Reliable, Motivating, Synchronized, Universal
 
 ## Project Classification & Approach
 
-**Complexity Level**: Production Application (comprehensive functionality with local authentication and data persistence)
+**Complexity Level**: Integrated Platform Application (comprehensive functionality with cross-platform authentication and data synchronization)
 
-**Primary User Activity**: Creating authenticated user accounts, tracking real study progress, and achieving personal goals with persistent cloud-backed data storage
+**Primary User Activity**: Creating unified accounts that work across MotivaMate and StudyPartner, tracking study progress that syncs between platforms, and achieving goals with consistent data availability everywhere
 
 ## Thought Process for Feature Selection
 
-**Core Problem Analysis**: Students need a reliable, production-ready platform to focus on work, track achievements, manage tasks, and organize thoughts while maintaining consistent data persistence locally.
+**Core Problem Analysis**: Students need a unified platform to access their study data from any device or application, whether using MotivaMate mobile app or StudyPartner web platform, with seamless synchronization and shared user accounts.
 
-**User Context**: Students use the app during focus sessions on mobile devices, track progress with local storage, manage tasks with persistent data, organize notes locally, and review achievements while data remains reliable and available across sessions.
+**User Context**: Students create accounts on either platform and expect to access the same data, progress, and achievements from both MotivaMate and StudyPartner, with automatic synchronization keeping everything up-to-date across platforms.
 
 **Critical Path**: 
-1. Simple account creation/authentication → 2. Local data initialization → 3. Set goals and start tracked sessions → 4. Complete tasks with local persistence → 5. Progress updates → 6. Achievement unlocks with storage
+1. Account creation on either platform → 2. Automatic data synchronization → 3. Cross-platform access verification → 4. Unified progress tracking → 5. Shared achievements and data
 
 **Key Moments**: 
-- Account creation (trust establishment)
-- First successful authentication (access confirmation)  
-- Data persistence (reliability demonstration)
-- Session continuity (seamless experience delivery)
-- Achievement persistence (long-term engagement)
+- Cross-platform authentication (seamless access)
+- Data synchronization (unified experience)  
+- Real-time updates (consistency maintenance)
+- Offline resilience (robust functionality)
+- Achievement sharing (motivation continuity)
 
 ## Essential Features
 
-### Local Authentication System
-- **What it does**: Simple email/password and demo authentication with local session management
-- **Why it matters**: Provides user identity management and account separation without external dependencies
-- **Success criteria**: Users authenticate locally, sessions persist across app reloads, and data separation works reliably
+### Cross-Platform Authentication System
+- **What it does**: Unified email/password authentication that works on both MotivaMate and StudyPartner with automatic account linking
+- **Why it matters**: Provides seamless user experience across platforms without requiring separate accounts
+- **Success criteria**: Users can sign in with same credentials on both platforms, accounts are automatically linked, authentication state syncs
 
-### Local Data Persistence
-- **What it does**: Reliable storage of all user data (goals, sessions, tasks, notes, achievements) locally
-- **Why it matters**: Ensures data continuity and provides reliable offline functionality
-- **Success criteria**: Data persists reliably across sessions, no data loss occurs, works offline
+### Data Synchronization Engine
+- **What it does**: Real-time bidirectional sync of all user data (sessions, tasks, notes, achievements) between MotivaMate and StudyPartner
+- **Why it matters**: Ensures data consistency and allows users to switch platforms without losing progress
+- **Success criteria**: Data syncs automatically, conflicts are resolved intelligently, offline changes sync when reconnected
+
+### StudyPartner API Integration
+- **What it does**: Robust API layer connecting MotivaMate to StudyPartner backend with error handling and fallback mechanisms
+- **Why it matters**: Provides reliable backend connectivity while maintaining app functionality during network issues
+- **Success criteria**: API calls succeed reliably, errors are handled gracefully, offline mode maintains functionality
 
 ### User Profile Management
 - **What it does**: Displays user information, authentication status, and provides sign-out functionality

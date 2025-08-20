@@ -257,8 +257,8 @@ class StudyPartnerAPI {
 
 // Default configuration - should be environment-specific
 const defaultConfig: APIConfig = {
-  baseURL: process.env.REACT_APP_STUDYPARTNER_API_URL || 'https://api.studypartner.app/v1',
-  apiKey: process.env.REACT_APP_STUDYPARTNER_API_KEY,
+  baseURL: import.meta.env.VITE_STUDYPARTNER_API_URL || 'https://api.studypartner.app/v1',
+  apiKey: import.meta.env.VITE_STUDYPARTNER_API_KEY,
   timeout: 10000 // 10 seconds
 }
 

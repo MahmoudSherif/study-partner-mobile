@@ -154,6 +154,12 @@ function AppContent() {
   })
   const [showChallengeProgress, setShowChallengeProgress] = useState(false)
 
+  // Get current user ID from Firebase Auth
+  const currentUserId = user?.uid || 'anonymous'
+  
+  // User-specific data keys - each user has their own data namespace
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+
   // Combine regular study sessions and focus sessions for stats calculation
   const stats = calculateUserStats(sessions, focusSessions)
   
@@ -171,12 +177,6 @@ function AppContent() {
   ]
   const { isStandalone } = usePWA()
   const deviceInfo = useMobileBehavior()
-  
-  // Get current user ID from Firebase Auth
-  const currentUserId = user?.uid || 'anonymous'
-  
-  // User-specific data keys - each user has their own data namespace
-  const userDataKey = (key: string) => `${currentUserId}-${key}`
 
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({

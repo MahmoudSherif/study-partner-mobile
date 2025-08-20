@@ -138,7 +138,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     })
     
     // Update goals progress
-    updateGoalsProgress(sessionMinutes)
+    updateGoalsProgress(sessionMinutes).catch(error => {
+      console.error('Error updating goals progress:', error)
+    })
 
     // Reset timer state
     setCurrentSession(null)
@@ -153,7 +155,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   }
 
   // Update goals progress with error handling
-  const updateGoalsProgress = (minutes: number) => {
+  const updateGoalsProgress = async (minutes: number) => {
     try {
       const today = new Date()
       const updatedGoals = goals.map(goal => {
@@ -254,7 +256,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   }
 
   // Add new goal
-  const addGoal = () => {
+  const addGoal = async () => {
     if (!newGoal.title.trim()) {
       toast.error('Please enter a goal title')
       return
@@ -289,7 +291,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
           
           // Send push notification for achievement unlock
           try {
-            notificationManager.notifyAchievementUnlock(
+            await notificationManager.notifyAchievementUnlock(
               achievement.title,
               achievement.description
             )

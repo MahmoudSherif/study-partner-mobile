@@ -2,6 +2,12 @@
 
 A mobile-first PWA for students to track study sessions, manage tasks, and achieve goals with Firebase authentication and cloud synchronization.
 
+## 🚀 Quick Deploy to Netlify
+
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/MahmoudSherif/study-partner-mobile)
+
+This repository is pre-configured for instant Netlify deployment with Firebase integration. See [Netlify Deployment Guide](./NETLIFY_DEPLOYMENT.md) for details.
+
 ## 🚀 Production Features
 
 - **Firebase Authentication**: Secure email/password and Google OAuth
@@ -10,6 +16,7 @@ A mobile-first PWA for students to track study sessions, manage tasks, and achie
 - **Mobile Optimized**: Touch-friendly interface with haptic feedback
 - **Achievement System**: Gamified progress tracking
 - **Cross-Device Sync**: Access your data from any device
+- **Netlify Ready**: Pre-configured for instant deployment
 
 ## 🛠️ Production Setup
 

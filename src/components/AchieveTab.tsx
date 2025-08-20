@@ -461,7 +461,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
         </CardContent>
       </Card>
 
-          </CardTitle>
+      {/* Focus Session Timer */}
       <Card className="bg-black/40 backdrop-blur-md border-white/20">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">

@@ -1,1 +1,0 @@
-// Firebase connection removed for production - testing not needed in production

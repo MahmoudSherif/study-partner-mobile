@@ -110,19 +110,6 @@ export const AuthScreen = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Demo Info Notice */}
-            <div className="mb-6 p-4 bg-accent/20 border border-accent/30 rounded-lg">
-              <h4 className="text-sm font-semibold text-accent mb-2">Demo Mode</h4>
-              <p className="text-xs text-white/70 mb-2">
-                This is a demo app with mock authentication. You can:
-              </p>
-              <ul className="text-xs text-white/70 space-y-1">
-                <li>• Create any account with email/password</li>
-                <li>• Or click "Google" for instant demo access</li>
-                <li>• Your data will be saved locally</li>
-              </ul>
-            </div>
-            
             <Tabs defaultValue="signin" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2 bg-white/10">
                 <TabsTrigger 
@@ -182,21 +169,6 @@ export const AuthScreen = () => {
                     disabled={loading}
                   >
                     {loading ? 'Signing In...' : 'Sign In'}
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full bg-white/5 border-white/20 text-white/70 hover:bg-white/10 hover:text-white text-xs"
-                    onClick={() => {
-                      setSignInForm({
-                        email: 'demo@example.com',
-                        password: 'demo123'
-                      })
-                    }}
-                    disabled={loading}
-                  >
-                    Fill Demo Credentials
                   </Button>
                 </form>
               </TabsContent>
@@ -290,14 +262,8 @@ export const AuthScreen = () => {
                 disabled={loading}
               >
                 <GoogleLogo size={16} className="mr-2" />
-                {loading ? 'Signing In...' : 'Try Demo Account'}
+                {loading ? 'Signing In...' : 'Continue with Google'}
               </Button>
-              
-              <div className="mt-4 pt-4 border-t border-white/10">
-                <p className="text-xs text-center text-white/60">
-                  Or create your own account above
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>

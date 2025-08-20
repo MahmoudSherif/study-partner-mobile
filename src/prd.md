@@ -2,52 +2,48 @@
 
 ## Core Purpose & Success
 
-# MotivaMate - Mobile Study Companion PRD
-
-## Core Purpose & Success
-
-**Mission Statement**: MotivaMate is a mobile-first, cloud-synced study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with user authentication and seamless data synchronization.
+**Mission Statement**: MotivaMate is a production-ready, mobile-first study companion that helps students achieve their goals through focused sessions, task management, and comprehensive progress tracking with Firebase authentication and cloud data synchronization.
 
 **Success Indicators**: 
-- Users consistently track focus sessions and achieve daily/weekly goals across devices
-- Task completion rates improve through gamification and challenges with persistent user accounts
-- Authentication enables secure data storage and cross-device synchronization
+- Users securely create accounts and maintain authenticated sessions across devices
+- Study sessions and progress data sync reliably to Firebase Firestore
+- Task completion rates improve through gamification and challenges
 - Achievement system motivates continued usage with personalized user profiles
-- Cloud sync ensures data continuity and reliability across sessions
+- Real-time data synchronization ensures seamless cross-device experience
+- Production-grade security and reliability standards are met
 
-**Experience Qualities**: Secure, Motivating, Organized, Achievement-Focused
+**Experience Qualities**: Secure, Reliable, Motivating, Organized
 
 ## Project Classification & Approach
 
-**Complexity Level**: Complex Application (advanced functionality with user accounts, authentication, and cloud synchronization)
+**Complexity Level**: Production Application (enterprise-grade functionality with Firebase backend, real authentication, and cloud data persistence)
 
-**Primary User Activity**: Creating (user accounts, focus sessions, notes) and Achieving (goals, tasks, milestones) with persistent user identity
+**Primary User Activity**: Creating authenticated user accounts, tracking real study progress, and achieving personal goals with persistent cloud-backed data storage
 
 ## Thought Process for Feature Selection
 
-**Core Problem Analysis**: Students need a unified, secure platform to focus on work, track achievements, manage tasks, and organize thoughts while maintaining data across devices through authenticated cloud storage.
+**Core Problem Analysis**: Students need a production-grade, secure platform to focus on work, track achievements, manage tasks, and organize thoughts while maintaining reliable data persistence and cross-device synchronization through Firebase.
 
-**User Context**: Students sign up for personalized accounts, use the app during focus sessions on mobile devices, check progress between work periods, manage tasks, organize notes, and review achievements while data stays synchronized across all their devices.
+**User Context**: Students create secure accounts, use the app during focus sessions on mobile devices, track real progress with cloud backup, manage tasks with persistent storage, organize notes with sync, and review achievements while data remains secure and available across all devices.
 
 **Critical Path**: 
-1. Sign up/Login → 2. Set goals and start focus sessions → 3. Complete tasks and take notes → 4. Track progress and unlock achievements → 5. Data syncs across devices
+1. Secure account creation/authentication → 2. Firebase data initialization → 3. Set goals and start tracked sessions → 4. Complete tasks with cloud sync → 5. Real-time progress updates → 6. Achievement unlocks with persistence
 
 **Key Moments**: 
-- Account creation (onboarding and trust building)
-- First successful login (security and continuity)
-- Data sync confirmation (reliability feeling)
-- Focus session completion (achievement feeling)
-- Goal milestone reached (satisfaction boost)
-- Cross-device continuity (seamless experience)
+- Account creation with Firebase (trust and security establishment)
+- First successful authentication (secure access confirmation)  
+- Real-time data sync (reliability demonstration)
+- Cross-device data continuity (seamless experience delivery)
+- Achievement persistence (long-term engagement)
 
 ## Essential Features
 
-### User Authentication System
-- **What it does**: Secure email/password and Google OAuth login with user profile management
-- **Why it matters**: Enables personalized experience, data security, and cross-device synchronization
-- **Success criteria**: Users can create accounts, sign in reliably, and maintain secure sessions
+### Firebase Authentication System
+- **What it does**: Production-grade email/password and Google OAuth authentication with secure session management
+- **Why it matters**: Provides enterprise-level security, user identity management, and regulatory compliance
+- **Success criteria**: Users authenticate securely, sessions persist appropriately, and account recovery works reliably
 
-### Cloud Data Synchronization
+### Firestore Cloud Synchronization
 - **What it does**: Real-time sync of all user data (goals, sessions, tasks, notes, achievements) across devices
 - **Why it matters**: Ensures data continuity and enables multi-device usage patterns
 - **Success criteria**: Data syncs reliably, conflicts resolve gracefully, offline support with sync when online

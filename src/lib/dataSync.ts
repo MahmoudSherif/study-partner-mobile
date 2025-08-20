@@ -1,11 +1,15 @@
-// Mock data sync service for demo purposes
-// In a real app, this would sync with Firebase Firestore
-
-interface MockUser {
-  uid: string
-  email: string | null
-  displayName: string | null
-}
+// Data sync service for production with Firebase Firestore
+import { User } from 'firebase/auth'
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  collection, 
+  getDocs, 
+  writeBatch,
+  serverTimestamp 
+} from 'firebase/firestore'
+import { db } from './firebase'
 
 export interface UserData {
   subjects: any[]
@@ -22,45 +26,102 @@ export interface UserData {
 }
 
 export class DataSyncService {
-  private user: MockUser | null = null
+  private user: User | null = null
 
-  constructor(user: MockUser | null) {
+  constructor(user: User | null) {
     this.user = user
   }
 
   // Initialize sync for a user
-  async initializeSync(user: MockUser) {
+  async initializeSync(user: User) {
     this.user = user
-    // Data sync initialized for production
     
-    // Emit sync success event
-    window.dispatchEvent(new CustomEvent('dataSync'))
+    try {
+      // Create user document if it doesn't exist
+      const userDocRef = doc(db, 'users', user.uid)
+      const userDoc = await getDoc(userDocRef)
+      
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          email: user.email,
+          displayName: user.displayName,
+          createdAt: serverTimestamp(),
+          lastSyncAt: serverTimestamp()
+        })
+      }
+      
+      // Emit sync success event
+      window.dispatchEvent(new CustomEvent('dataSync'))
+    } catch (error) {
+      console.error('Failed to initialize sync:', error)
+    }
   }
 
   // Clean up sync when user logs out
   cleanup() {
     this.user = null
-    // Data sync cleanup for production
   }
 
-  // Mock sync to Firestore (does nothing in demo)
-  async syncToFirestore() {
+  // Sync user data to Firestore
+  async syncToFirestore(userData: Partial<UserData>) {
     if (!this.user) return
     
-    // Production sync to Firestore
+    try {
+      // Emit sync start event
+      window.dispatchEvent(new CustomEvent('syncStart'))
+      
+      const userDocRef = doc(db, 'users', this.user.uid)
+      const dataToSync = {
+        ...userData,
+        lastSyncAt: serverTimestamp()
+      }
+      
+      await setDoc(userDocRef, dataToSync, { merge: true })
+      
+      // Emit sync complete event
+      window.dispatchEvent(new CustomEvent('dataSync'))
+    } catch (error) {
+      console.error('Failed to sync data:', error)
+      // Emit sync error event
+      window.dispatchEvent(new CustomEvent('syncError'))
+    }
+  }
+
+  // Load user data from Firestore
+  async loadFromFirestore(): Promise<UserData | null> {
+    if (!this.user) return null
     
-    // Emit sync events for UI feedback
-    window.dispatchEvent(new CustomEvent('syncStart'))
-    
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    window.dispatchEvent(new CustomEvent('dataSync'))
+    try {
+      const userDocRef = doc(db, 'users', this.user.uid)
+      const userDoc = await getDoc(userDocRef)
+      
+      if (userDoc.exists()) {
+        const data = userDoc.data()
+        return {
+          subjects: data.subjects || [],
+          sessions: data.sessions || [],
+          achievements: data.achievements || [],
+          tasks: data.tasks || [],
+          challenges: data.challenges || [],
+          focusSessions: data.focusSessions || [],
+          goals: data.goals || [],
+          notes: data.notes || [],
+          events: data.events || [],
+          dismissedNotifications: data.dismissedNotifications || [],
+          lastSyncAt: data.lastSyncAt
+        }
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Failed to load data:', error)
+      return null
+    }
   }
 
   // Manual sync method
-  async manualSync() {
-    await this.syncToFirestore()
+  async manualSync(userData: Partial<UserData>) {
+    await this.syncToFirestore(userData)
   }
 }
 
@@ -68,7 +129,7 @@ export class DataSyncService {
 export let dataSyncService: DataSyncService | null = null
 
 // Initialize sync service
-export const initializeDataSync = (user: MockUser | null) => {
+export const initializeDataSync = (user: User | null) => {
   if (dataSyncService) {
     dataSyncService.cleanup()
   }

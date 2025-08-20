@@ -634,6 +634,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                   </CardContent>
                 </Card>
               )}
+              </SubjectChartsWrapper>
             </>
           )}
         </TabsContent>

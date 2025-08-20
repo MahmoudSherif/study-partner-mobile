@@ -471,7 +471,6 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                   </Card>
                 )}
               </SubjectChartsWrapper>
-              </SubjectChartsWrapper>
 
               {/* Subject Monthly Trends */}
               <SubjectChartsWrapper currentSubject={currentSubject}>

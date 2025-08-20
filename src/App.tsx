@@ -115,7 +115,21 @@ function AppContent() {
   })
   const [showChallengeProgress, setShowChallengeProgress] = useState(false)
 
-  const stats = calculateUserStats(sessions)
+  // Combine regular study sessions and focus sessions for stats calculation
+  const stats = calculateUserStats(sessions, focusSessions)
+  
+  // Combine regular study sessions and focus sessions for activity tracking
+  const allSessions = [
+    ...sessions,
+    ...focusSessions.map(fs => ({
+      id: fs.id,
+      subjectId: 'focus',
+      startTime: fs.startTime,
+      endTime: fs.endTime || fs.startTime,
+      duration: fs.duration,
+      completed: fs.completed
+    } as StudySession))
+  ]
   const { isStandalone } = usePWA()
   const deviceInfo = useMobileBehavior()
   
@@ -303,7 +317,7 @@ function AppContent() {
 
   useEffect(() => {
     try {
-      const updatedAchievements = updateAchievements(achievements, stats, sessions)
+      const updatedAchievements = updateAchievements(achievements, stats, sessions, focusSessions)
       
       // Check for newly unlocked achievements
       const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
@@ -328,7 +342,7 @@ function AppContent() {
       console.error('Error updating achievements:', error)
       // Don't show user error for achievements update
     }
-  }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak])
+  }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak, focusSessions.length])
 
   const handleAddSubject = (subjectData: Omit<Subject, 'id'>) => {
     const newSubject: Subject = {
@@ -646,7 +660,7 @@ function AppContent() {
 
           <TabsContent value="profile" className="space-y-4 m-0">
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
-              <ProfileTab stats={stats} achievements={achievements} sessions={sessions} />
+              <ProfileTab stats={stats} achievements={achievements} sessions={allSessions} />
             </div>
             <div className="bg-black/20 backdrop-blur-md rounded-lg border border-white/10 p-4">
               <ProgressCharts sessions={sessions} subjects={subjects} />

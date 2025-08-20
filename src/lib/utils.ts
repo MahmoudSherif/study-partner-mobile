@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification } from './types'
+import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification, FocusSession } from './types'
 import { INITIAL_ACHIEVEMENTS } from './constants'
 import { calculateStudyStreak } from './chartUtils'
 
@@ -8,26 +8,46 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function calculateUserStats(sessions: StudySession[]): UserStats {
+export function calculateUserStats(sessions: StudySession[], focusSessions: FocusSession[] = []): UserStats {
   const completedSessions = sessions.filter(s => s.completed)
-  const totalTime = completedSessions.reduce((total, session) => total + session.duration, 0)
+  const completedFocusSessions = focusSessions.filter(f => f.completed)
+  
+  const sessionTime = completedSessions.reduce((total, session) => total + session.duration, 0)
+  const focusTime = completedFocusSessions.reduce((total, session) => total + session.duration, 0)
+  const totalTime = sessionTime + focusTime
+  
+  // Combine sessions for streak calculation
+  const allSessions = [
+    ...sessions,
+    ...focusSessions.map(fs => ({
+      id: fs.id,
+      subjectId: 'focus',
+      startTime: fs.startTime,
+      endTime: fs.endTime || fs.startTime,
+      duration: fs.duration,
+      completed: fs.completed
+    } as StudySession))
+  ]
   
   // Use the improved streak calculation from chartUtils
-  const streak = calculateStudyStreak(sessions)
+  const streak = calculateStudyStreak(allSessions)
+
+  const totalSessions = completedSessions.length + completedFocusSessions.length
 
   return {
     totalStudyTime: totalTime,
     streak,
     longestStreak: streak, // Simplified for now
-    sessionsCompleted: completedSessions.length,
-    averageSessionLength: completedSessions.length > 0 ? Math.round(totalTime / completedSessions.length) : 0
+    sessionsCompleted: totalSessions,
+    averageSessionLength: totalSessions > 0 ? Math.round(totalTime / totalSessions) : 0
   }
 }
 
 export function updateAchievements(
   currentAchievements: Achievement[],
   stats: UserStats,
-  sessions: StudySession[]
+  sessions: StudySession[],
+  focusSessions: FocusSession[] = []
 ): Achievement[] {
   return currentAchievements.map(achievement => {
     let progress = 0

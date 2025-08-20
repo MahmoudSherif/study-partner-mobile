@@ -2,10 +2,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { Trophy, Target, Clock, Flame, Calendar, TrendingUp } from '@phosphor-icons/react'
-import { UserStats, Achievement, StudySession } from '@/lib/types'
+import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
 import { ActivityGrid } from '@/components/ActivityGrid'
+import { useKV } from '@github/spark/hooks'
 
 interface ProfileTabProps {
   stats: UserStats
@@ -14,17 +15,32 @@ interface ProfileTabProps {
 }
 
 export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabProps) {
+  const [focusSessions] = useKV<FocusSession[]>('focus-sessions', [])
+  
   const unlockedAchievements = achievements.filter(a => a.unlocked)
   const nextAchievement = achievements.find(a => !a.unlocked && a.progress > 0)
   
-  // Calculate weekly progress
-  const weeklyData = getWeeklyData(sessions)
+  // Combine regular study sessions and focus sessions for activity tracking
+  const allActivitySessions = [
+    ...sessions,
+    ...focusSessions.map(fs => ({
+      id: fs.id,
+      subjectId: 'focus', // Use a placeholder since focus sessions don't have subjects
+      startTime: fs.startTime,
+      endTime: fs.endTime || fs.startTime,
+      duration: fs.duration,
+      completed: fs.completed
+    } as StudySession))
+  ]
+  
+  // Calculate weekly progress using all activity sessions
+  const weeklyData = getWeeklyData(allActivitySessions)
   const thisWeekMinutes = weeklyData[weeklyData.length - 1]?.minutes || 0
   const lastWeekMinutes = weeklyData[weeklyData.length - 2]?.minutes || 0
   const weeklyProgress = lastWeekMinutes > 0 ? ((thisWeekMinutes - lastWeekMinutes) / lastWeekMinutes) * 100 : 0
   
-  // Get best study time
-  const bestTime = getBestStudyTime(sessions)
+  // Get best study time using all activity sessions
+  const bestTime = getBestStudyTime(allActivitySessions)
   const bestTimeString = bestTime.sessions > 0 ? 
     `${bestTime.hour === 0 ? 12 : bestTime.hour > 12 ? bestTime.hour - 12 : bestTime.hour}${bestTime.hour >= 12 ? 'PM' : 'AM'}` 
     : 'N/A'
@@ -34,10 +50,10 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
       {/* Activity Grid - GitHub-style contribution calendar */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base text-white">Study Activity</CardTitle>
+          <CardTitle className="text-base text-white">Activity</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          <ActivityGrid sessions={sessions} />
+          <ActivityGrid sessions={allActivitySessions} />
         </CardContent>
       </Card>
 

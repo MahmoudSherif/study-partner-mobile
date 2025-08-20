@@ -290,6 +290,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     setGoals(current => [...current, goal])
     
     // Trigger achievement check for goal creation
+    let unlockedAchievement: Achievement | null = null
     const updatedAchievements = achievements.map(achievement => {
       if (achievement.id === 'goal-setter' && !achievement.unlocked) {
         const newProgress = goals.length + 1 // +1 for the goal we just added
@@ -302,15 +303,8 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
             duration: 5000
           })
           
-          // Send push notification for achievement unlock
-          try {
-            await notificationManager.notifyAchievementUnlock(
-              achievement.title,
-              achievement.description
-            )
-          } catch (error) {
-            console.error('Failed to send achievement notification:', error)
-          }
+          // Store achievement for async notification
+          unlockedAchievement = achievement
         }
         
         return {
@@ -322,6 +316,18 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       }
       return achievement
     })
+    
+    // Send push notification for achievement unlock (async operation outside map)
+    if (unlockedAchievement) {
+      try {
+        await notificationManager.notifyAchievementUnlock(
+          unlockedAchievement.title,
+          unlockedAchievement.description
+        )
+      } catch (error) {
+        console.error('Failed to send achievement notification:', error)
+      }
+    }
     
     onUpdateAchievements(updatedAchievements)
     
@@ -455,7 +461,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
         </CardContent>
       </Card>
 
-      {/* Focus Timer */}
+          </CardTitle>
       <Card className="bg-black/40 backdrop-blur-md border-white/20">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">

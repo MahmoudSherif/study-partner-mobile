@@ -49,6 +49,27 @@ function SubjectChartsWrapper({ children, currentSubject }: { children: React.Re
 export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   const [selectedSubject, setSelectedSubject] = useState<string>('')
   
+  // Reset selected subject if subjects array structure changes
+  useEffect(() => {
+    if (!subjects || !Array.isArray(subjects)) {
+      setSelectedSubject('')
+      return
+    }
+    
+    // If we have subjects but no valid selection, pick the first one
+    if (subjects.length > 0 && (!selectedSubject || !subjects.find(s => s?.id === selectedSubject))) {
+      const firstValidSubject = subjects.find(s => s && s.id && s.name)
+      if (firstValidSubject) {
+        setSelectedSubject(firstValidSubject.id)
+      }
+    }
+    
+    // If no subjects, clear selection
+    if (subjects.length === 0) {
+      setSelectedSubject('')
+    }
+  }, [subjects])
+  
   // Safely calculate chart data with error handling
   const weeklyData = useMemo(() => {
     try {
@@ -84,7 +105,12 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
     try {
       if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return {}
       if (!sessions || !Array.isArray(sessions)) return {}
-      return getSubjectWeeklyData(sessions, subjects)
+      
+      // Filter out invalid subjects
+      const validSubjects = subjects.filter(s => s && s.id && s.name)
+      if (validSubjects.length === 0) return {}
+      
+      return getSubjectWeeklyData(sessions, validSubjects)
     } catch (error) {
       console.error('Error calculating subject weekly data:', error)
       return {}
@@ -95,7 +121,12 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
     try {
       if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return {}
       if (!sessions || !Array.isArray(sessions)) return {}
-      return getSubjectMonthlyData(sessions, subjects)
+      
+      // Filter out invalid subjects
+      const validSubjects = subjects.filter(s => s && s.id && s.name)
+      if (validSubjects.length === 0) return {}
+      
+      return getSubjectMonthlyData(sessions, validSubjects)
     } catch (error) {
       console.error('Error calculating subject monthly data:', error)
       return {}
@@ -106,38 +137,40 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
     try {
       if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return []
       if (!sessions || !Array.isArray(sessions)) return []
-      return getSubjectComparison(sessions, subjects)
+      
+      // Filter out invalid subjects
+      const validSubjects = subjects.filter(s => s && s.id && s.name)
+      if (validSubjects.length === 0) return []
+      
+      return getSubjectComparison(sessions, validSubjects)
     } catch (error) {
       console.error('Error calculating subject comparison:', error)
       return []
     }
   }, [sessions, subjects])
 
-  // Initialize selected subject on first load or when subjects change
-  useEffect(() => {
-    if (subjects && subjects.length > 0) {
-      // If no subject is selected or current selection is invalid, select first subject
-      if (!selectedSubject || !subjects.find(s => s.id === selectedSubject)) {
-        setSelectedSubject(subjects[0].id)
-      }
-    } else {
-      // Clear selection if no subjects exist
-      setSelectedSubject('')
-    }
-  }, [subjects])
-
   // Get current subject data safely
   const currentSubjectId = useMemo(() => {
-    if (!subjects || subjects.length === 0) return ''
-    if (selectedSubject && subjects.find(s => s.id === selectedSubject)) {
-      return selectedSubject
+    try {
+      if (!subjects || !Array.isArray(subjects) || subjects.length === 0) return ''
+      if (selectedSubject && subjects.find(s => s && s.id === selectedSubject)) {
+        return selectedSubject
+      }
+      return subjects[0]?.id || ''
+    } catch (error) {
+      console.error('Error getting current subject ID:', error)
+      return subjects?.[0]?.id || ''
     }
-    return subjects[0]?.id || ''
   }, [selectedSubject, subjects])
   
   const currentSubject = useMemo(() => {
-    if (!subjects || !currentSubjectId) return null
-    return subjects.find(s => s.id === currentSubjectId) || null
+    try {
+      if (!subjects || !Array.isArray(subjects) || !currentSubjectId) return null
+      return subjects.find(s => s && s.id === currentSubjectId) || null
+    } catch (error) {
+      console.error('Error getting current subject:', error)
+      return null
+    }
   }, [subjects, currentSubjectId])
 
   return (
@@ -355,7 +388,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
           )}
         </TabsContent>
 
-        <TabsContent value="subjects" className="space-y-4" key={`subjects-${currentSubjectId}`}>
+        <TabsContent value="subjects" className="space-y-4" key={`subjects-tab-${currentSubjectId || 'none'}`}>
           {!subjects || subjects.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-8">
@@ -382,23 +415,30 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                     onValueChange={(value) => {
                       try {
                         // Ensure the selected subject actually exists before setting it
-                        if (!value) return
+                        if (!value || !subjects || !Array.isArray(subjects)) {
+                          console.warn('Invalid value or subjects array:', value, subjects)
+                          return
+                        }
                         
-                        const selectedSubjectExists = subjects.find(s => s.id === value)
+                        const selectedSubjectExists = subjects.find(s => s && s.id === value)
                         if (selectedSubjectExists) {
                           setSelectedSubject(value)
                         } else {
                           console.warn('Selected subject does not exist:', value)
                           // Fallback to first subject if selection is invalid
-                          if (subjects && subjects.length > 0) {
+                          if (subjects && subjects.length > 0 && subjects[0]?.id) {
                             setSelectedSubject(subjects[0].id)
+                          } else {
+                            setSelectedSubject('')
                           }
                         }
                       } catch (error) {
                         console.error('Error changing subject:', error)
                         // Reset to first subject if there's an error
-                        if (subjects && subjects.length > 0) {
+                        if (subjects && Array.isArray(subjects) && subjects.length > 0 && subjects[0]?.id) {
                           setSelectedSubject(subjects[0].id)
+                        } else {
+                          setSelectedSubject('')
                         }
                       }
                     }}
@@ -407,17 +447,25 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                       <SelectValue placeholder="Select a subject" />
                     </SelectTrigger>
                     <SelectContent className="bg-black/90 border-white/20">
-                      {subjects && subjects.map(subject => (
-                        <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-white/10">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-3 h-3 rounded-full" 
-                              style={{ backgroundColor: subject.color }}
-                            ></div>
-                            {subject.name}
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {subjects && Array.isArray(subjects) && subjects.map(subject => {
+                        // Safety check for subject object
+                        if (!subject || !subject.id || !subject.name) {
+                          console.warn('Invalid subject object:', subject)
+                          return null
+                        }
+                        
+                        return (
+                          <SelectItem key={subject.id} value={subject.id} className="text-white hover:bg-white/10">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: subject.color || '#6366f1' }}
+                              ></div>
+                              {subject.name}
+                            </div>
+                          </SelectItem>
+                        )
+                      }).filter(Boolean)}
                     </SelectContent>
                   </Select>
                 </CardContent>
@@ -425,13 +473,18 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
 
               {/* Subject Weekly Progress */}
               <SubjectChartsWrapper currentSubject={currentSubject}>
-                {currentSubject && currentSubjectId && subjectWeeklyData && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
+                {currentSubject && currentSubjectId && 
+                 subjectWeeklyData && 
+                 typeof subjectWeeklyData === 'object' && 
+                 subjectWeeklyData[currentSubjectId] && 
+                 Array.isArray(subjectWeeklyData[currentSubjectId]) && 
+                 subjectWeeklyData[currentSubjectId].length > 0 && (
                   <Card>
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2 text-white">
                         <div 
                           className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: currentSubject.color }}
+                          style={{ backgroundColor: currentSubject.color || '#6366f1' }}
                         ></div>
                         {currentSubject.name} - Weekly Progress
                       </CardTitle>
@@ -458,8 +511,8 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                               <Area 
                                 type="monotone" 
                                 dataKey="minutes" 
-                                stroke={currentSubject.color}
-                                fill={currentSubject.color}
+                                stroke={currentSubject.color || '#6366f1'}
+                                fill={currentSubject.color || '#6366f1'}
                                 fillOpacity={0.15}
                                 strokeWidth={2}
                               />
@@ -474,13 +527,18 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
 
               {/* Subject Monthly Trends */}
               <SubjectChartsWrapper currentSubject={currentSubject}>
-                {currentSubject && currentSubjectId && subjectMonthlyData && subjectMonthlyData[currentSubjectId] && subjectMonthlyData[currentSubjectId].length > 0 && (
+                {currentSubject && currentSubjectId && 
+                 subjectMonthlyData && 
+                 typeof subjectMonthlyData === 'object' && 
+                 subjectMonthlyData[currentSubjectId] && 
+                 Array.isArray(subjectMonthlyData[currentSubjectId]) && 
+                 subjectMonthlyData[currentSubjectId].length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2 text-white">
                       <div 
                         className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: currentSubject.color }}
+                        style={{ backgroundColor: currentSubject.color || '#6366f1' }}
                       ></div>
                       {currentSubject.name} - Monthly Trends
                     </CardTitle>
@@ -507,9 +565,9 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                             <Line 
                               type="monotone" 
                               dataKey="minutes" 
-                              stroke={currentSubject.color}
+                              stroke={currentSubject.color || '#6366f1'}
                               strokeWidth={3}
-                              dot={{ fill: currentSubject.color, strokeWidth: 2, r: 4 }}
+                              dot={{ fill: currentSubject.color || '#6366f1', strokeWidth: 2, r: 4 }}
                             />
                           )}
                         </LineChart>
@@ -520,7 +578,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               )}
 
               {/* Subject Comparison */}
-              {subjectComparison.length > 0 && (
+              {Array.isArray(subjectComparison) && subjectComparison.length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base text-white">Subject Comparison</CardTitle>
@@ -576,7 +634,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               )}
 
               {/* Subject Performance Insights */}
-              {currentSubject && (
+              {currentSubject && currentSubject.id && currentSubject.name && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base text-white">Performance Insights</CardTitle>
@@ -585,10 +643,14 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-white/70">Total Study Time</span>
-                        <span className="font-medium text-white">{currentSubject.totalTime} minutes</span>
+                        <span className="font-medium text-white">{currentSubject.totalTime || 0} minutes</span>
                       </div>
                       
-                      {subjectWeeklyData && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
+                      {subjectWeeklyData && 
+                       typeof subjectWeeklyData === 'object' && 
+                       subjectWeeklyData[currentSubjectId] && 
+                       Array.isArray(subjectWeeklyData[currentSubjectId]) && 
+                       subjectWeeklyData[currentSubjectId].length > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white/70">This Week</span>
                           <span className="font-medium text-white">
@@ -597,12 +659,16 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                         </div>
                       )}
                       
-                      {subjectWeeklyData && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
+                      {subjectWeeklyData && 
+                       typeof subjectWeeklyData === 'object' && 
+                       subjectWeeklyData[currentSubjectId] && 
+                       Array.isArray(subjectWeeklyData[currentSubjectId]) && 
+                       subjectWeeklyData[currentSubjectId].length > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white/70">Weekly Average</span>
                           <span className="font-medium text-white">
                             {Math.round(
-                              subjectWeeklyData[currentSubjectId].reduce((sum, week) => sum + week.minutes, 0) / subjectWeeklyData[currentSubjectId].length
+                              subjectWeeklyData[currentSubjectId].reduce((sum, week) => sum + (week?.minutes || 0), 0) / subjectWeeklyData[currentSubjectId].length
                             )} minutes
                           </span>
                         </div>
@@ -613,10 +679,10 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                           <span className="text-sm text-white/70">Target Progress</span>
                           <div className="text-right">
                             <div className="text-sm font-medium text-white">
-                              {Math.round((currentSubject.totalTime / (currentSubject.targetHours * 60)) * 100)}%
+                              {Math.round(((currentSubject.totalTime || 0) / ((currentSubject.targetHours || 1) * 60)) * 100)}%
                             </div>
                             <div className="text-xs text-white/50">
-                              of {currentSubject.targetHours}h goal
+                              of {currentSubject.targetHours || 0}h goal
                             </div>
                           </div>
                         </div>
@@ -624,8 +690,8 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                           <div 
                             className="h-2 rounded-full transition-all duration-300"
                             style={{ 
-                              width: `${Math.min(100, (currentSubject.totalTime / (currentSubject.targetHours * 60)) * 100)}%`,
-                              backgroundColor: currentSubject.color
+                              width: `${Math.min(100, ((currentSubject.totalTime || 0) / ((currentSubject.targetHours || 1) * 60)) * 100)}%`,
+                              backgroundColor: currentSubject.color || '#6366f1'
                             }}
                           ></div>
                         </div>

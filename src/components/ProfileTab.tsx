@@ -6,6 +6,7 @@ import { UserStats, Achievement, StudySession, FocusSession } from '@/lib/types'
 import { formatTime } from '@/lib/utils'
 import { getWeeklyData, getBestStudyTime } from '@/lib/chartUtils'
 import { ActivityGrid } from '@/components/ActivityGrid'
+import { ActivityCharts } from '@/components/ActivityCharts'
 import { NotificationSettings } from '@/components/NotificationSettings'
 import { useKV } from '@github/spark/hooks'
 
@@ -63,6 +64,9 @@ export function ProfileTab({ stats, achievements, sessions = [] }: ProfileTabPro
           <ActivityGrid sessions={allActivitySessions} />
         </CardContent>
       </Card>
+
+      {/* Activity Charts - Weekly and Monthly Bar Charts */}
+      <ActivityCharts sessions={allActivitySessions} />
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4">

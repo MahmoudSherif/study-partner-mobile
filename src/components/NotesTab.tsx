@@ -84,7 +84,7 @@ export function NotesTab() {
         setNotes([welcomeNote])
       }
     } catch (error) {
-      console.error('Error initializing notes:', error)
+      // Error handling for production
       // Don't show user error for initialization
     }
   }, [])

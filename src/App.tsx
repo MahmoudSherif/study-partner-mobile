@@ -9,7 +9,6 @@ import { Calendar } from '@/components/Calendar'
 import { TasksManagement } from '@/components/TasksManagement'
 import { TaskCelebration } from '@/components/TaskCelebration'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
-import { DeviceIndicator } from '@/components/DeviceIndicator'
 import { OfflineIndicator } from '@/components/OfflineIndicator'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { AchieveTab } from '@/components/AchieveTab'
@@ -27,7 +26,6 @@ import { usePWA } from '@/hooks/usePWA'
 import { useMobileBehavior } from '@/hooks/useDeviceDetection'
 import { mobileFeedback } from '@/lib/mobileFeedback'
 import { notificationManager, initializeNotifications } from '@/lib/notifications'
-import '@/lib/firebaseTest' // Test Firebase connection in development
 import { 
   Clock, 
   ChartBar, 
@@ -78,11 +76,9 @@ function AppContent() {
     const setupNotifications = async () => {
       try {
         const initialized = await initializeNotifications();
-        if (initialized) {
-          console.log('Notifications initialized successfully');
-        }
+        // Notifications initialized silently for production
       } catch (error) {
-        console.error('Failed to initialize notifications:', error);
+        // Silent failure for notifications in production
       }
     };
 
@@ -92,7 +88,6 @@ function AppContent() {
   // Global error handling with improved specificity
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
-      console.error('Global error caught:', event.error)
       // Only show toast for serious errors, not minor UI glitches
       if (event.error && !event.error.message?.includes('ResizeObserver')) {
         toast.error('An unexpected error occurred. Please refresh if issues persist.')
@@ -100,24 +95,23 @@ function AppContent() {
     }
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason)
-      
       // Check if it's a useKV storage error
       if (event.reason?.message?.includes('storage') || event.reason?.message?.includes('KV')) {
-        console.log('Storage operation failed, likely due to browser restrictions')
         // Don't show error toast for storage failures as they're often recoverable
         return
       }
       
       // Check if it's a network error
       if (event.reason?.message?.includes('fetch') || event.reason?.message?.includes('network')) {
-        console.log('Network operation failed')
+        // Silent network error handling
         return
       }
       
-      // Only show toast for genuine application errors
-      if (event.reason && typeof event.reason === 'object' && event.reason.message) {
-        console.log('Background operation error details:', event.reason.message)
+      // Only show toast for genuine application errors that impact user experience
+      if (event.reason && typeof event.reason === 'object' && event.reason.message && 
+          !event.reason.message.includes('firebase') && 
+          !event.reason.message.includes('auth')) {
+        toast.error('Something went wrong. Please try again.')
       }
     }
 
@@ -181,25 +175,17 @@ function AppContent() {
   // Touch gestures for tab navigation
   const containerRef = useTouchGestures({
     onSwipeLeft: () => {
-      try {
-        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
-        const currentIndex = tabs.indexOf(currentTab)
-        if (currentIndex < tabs.length - 1) {
-          setCurrentTab(tabs[currentIndex + 1])
-        }
-      } catch (error) {
-        console.debug('Swipe left error:', error)
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
+      const currentIndex = tabs.indexOf(currentTab)
+      if (currentIndex < tabs.length - 1) {
+        setCurrentTab(tabs[currentIndex + 1])
       }
     },
     onSwipeRight: () => {
-      try {
-        const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
-        const currentIndex = tabs.indexOf(currentTab)
-        if (currentIndex > 0) {
-          setCurrentTab(tabs[currentIndex - 1])
-        }
-      } catch (error) {
-        console.debug('Swipe right error:', error)
+      const tabs = ['achieve', 'tasks', 'calendar', 'notes', 'profile', 'achievements', 'inspiration']
+      const currentIndex = tabs.indexOf(currentTab)
+      if (currentIndex > 0) {
+        setCurrentTab(tabs[currentIndex - 1])
       }
     },
     threshold: 100
@@ -208,34 +194,26 @@ function AppContent() {
   // Prevent zooming on double tap
   useEffect(() => {
     const preventDefault = (e: TouchEvent) => {
-      try {
-        if (e.touches && e.touches.length > 1) {
-          e.preventDefault()
-        }
-      } catch (error) {
-        console.debug('Touch event error:', error)
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault()
       }
     }
 
     const preventZoom = (e: TouchEvent) => {
-      try {
-        const t2 = e.timeStamp
-        const target = e.currentTarget as HTMLElement
-        if (!target || !target.dataset) return
-        
-        const t1 = parseFloat(target.dataset.lastTouch || t2.toString())
-        const dt = t2 - t1
-        const fingers = e.touches ? e.touches.length : 0
-        target.dataset.lastTouch = t2.toString()
+      const t2 = e.timeStamp
+      const target = e.currentTarget as HTMLElement
+      if (!target || !target.dataset) return
+      
+      const t1 = parseFloat(target.dataset.lastTouch || t2.toString())
+      const dt = t2 - t1
+      const fingers = e.touches ? e.touches.length : 0
+      target.dataset.lastTouch = t2.toString()
 
-        if (!dt || dt > 500 || fingers > 1) return // not double-tap
+      if (!dt || dt > 500 || fingers > 1) return // not double-tap
 
-        e.preventDefault()
-        if (e.target && typeof (e.target as HTMLElement).click === 'function') {
-          (e.target as HTMLElement).click()
-        }
-      } catch (error) {
-        console.debug('Touch zoom prevention error:', error)
+      e.preventDefault()
+      if (e.target && typeof (e.target as HTMLElement).click === 'function') {
+        (e.target as HTMLElement).click()
       }
     }
 
@@ -382,8 +360,7 @@ function AppContent() {
       setPreviousDailyProgress(dailyPercentage)
       setPreviousChallengeProgress(challengePointsPercentage)
     } catch (error) {
-      console.error('Error checking progress milestones:', error)
-      // Don't show user error for milestone tracking
+      // Silent error handling for milestone tracking
     }
   }, [taskProgress.dailyTasks.percentage, taskProgress.challengeProgress?.pointsPercentage])
 
@@ -415,15 +392,14 @@ function AppContent() {
               achievement.description
             )
           } catch (error) {
-            console.error('Failed to send achievement notification:', error)
+            // Silent notification failure
           }
         })
       } else {
         setAchievements(updatedAchievements)
       }
     } catch (error) {
-      console.error('Error updating achievements:', error)
-      // Don't show user error for achievements update
+      // Silent error handling for achievements update
     }
   }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak, focusSessions.length, goals.length, goals.filter(g => g.isCompleted).length])
 
@@ -494,7 +470,6 @@ function AppContent() {
       
       toast.success(`Great job! You studied ${selectedSubject.name} for ${Math.round(duration)} minutes.`)
     } catch (error) {
-      console.error('Error completing session:', error)
       toast.error('Failed to save session. Please try again.')
     }
   }
@@ -545,7 +520,6 @@ function AppContent() {
         })
       }
     } catch (error) {
-      console.error('Error toggling task:', error)
       toast.error('Failed to update task. Please try again.')
     }
   }
@@ -644,7 +618,6 @@ function AppContent() {
         })
       }
     } catch (error) {
-      console.error('Error toggling challenge task:', error)
       toast.error('Failed to update challenge task. Please try again.')
     }
   }
@@ -703,10 +676,9 @@ function AppContent() {
           )
         }
       } catch (error) {
-        console.error('Failed to send challenge notification:', error)
+        // Silent notification failure
       }
     } catch (error) {
-      console.error('Error ending challenge:', error)
       toast.error('Failed to end challenge. Please try again.')
     }
   }
@@ -826,7 +798,6 @@ function AppContent() {
       </div>
 
       <QuotesBar />
-      <DeviceIndicator />
 
       <TaskCelebration
         isOpen={celebrationData.isOpen}

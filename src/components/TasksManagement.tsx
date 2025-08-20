@@ -92,21 +92,62 @@ export function TasksManagement({
   })
 
   const handleAddTask = () => {
-    if (!newTask.title.trim()) {
+    // Input validation and sanitization
+    const sanitizedTitle = newTask.title.trim()
+    const sanitizedDescription = newTask.description?.trim()
+    
+    if (!sanitizedTitle) {
       toast.error('Please enter a task title')
       return
+    }
+    
+    if (sanitizedTitle.length > 100) {
+      toast.error('Task title is too long (max 100 characters)')
+      return
+    }
+    
+    if (sanitizedDescription && sanitizedDescription.length > 500) {
+      toast.error('Task description is too long (max 500 characters)')
+      return
+    }
+    
+    // Validate estimated time
+    let estimatedTimeNum: number | undefined
+    if (newTask.estimatedTime) {
+      estimatedTimeNum = parseInt(newTask.estimatedTime)
+      if (isNaN(estimatedTimeNum) || estimatedTimeNum < 1 || estimatedTimeNum > 1440) {
+        toast.error('Estimated time must be between 1 and 1440 minutes')
+        return
+      }
+    }
+    
+    // Validate due date
+    let dueDateValid: Date | undefined
+    if (newTask.dueDate) {
+      dueDateValid = new Date(newTask.dueDate)
+      if (isNaN(dueDateValid.getTime())) {
+        toast.error('Please enter a valid due date')
+        return
+      }
+      // Check if due date is not too far in the future (e.g., more than 5 years)
+      const fiveYearsFromNow = new Date()
+      fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5)
+      if (dueDateValid > fiveYearsFromNow) {
+        toast.error('Due date cannot be more than 5 years in the future')
+        return
+      }
     }
 
     mobileFeedback.buttonPress()
     
     const task: Omit<Task, 'id' | 'createdAt'> = {
-      title: newTask.title,
-      description: newTask.description || undefined,
+      title: sanitizedTitle,
+      description: sanitizedDescription || undefined,
       completed: false,
       priority: newTask.priority,
       subjectId: newTask.subjectId || undefined,
-      estimatedTime: newTask.estimatedTime ? parseInt(newTask.estimatedTime) : undefined,
-      dueDate: newTask.dueDate ? new Date(newTask.dueDate) : undefined
+      estimatedTime: estimatedTimeNum,
+      dueDate: dueDateValid
     }
 
     onAddTask(task)
@@ -123,20 +164,59 @@ export function TasksManagement({
   }
 
   const handleCreateChallenge = () => {
-    if (!newChallenge.title.trim()) {
+    // Input validation and sanitization
+    const sanitizedTitle = newChallenge.title.trim()
+    const sanitizedDescription = newChallenge.description?.trim()
+    
+    if (!sanitizedTitle) {
       toast.error('Please enter a challenge title')
       return
+    }
+    
+    if (sanitizedTitle.length > 100) {
+      toast.error('Challenge title is too long (max 100 characters)')
+      return
+    }
+    
+    if (sanitizedDescription && sanitizedDescription.length > 1000) {
+      toast.error('Challenge description is too long (max 1000 characters)')
+      return
+    }
+    
+    // Validate end date
+    let endDateValid: Date | undefined
+    if (newChallenge.endDate) {
+      endDateValid = new Date(newChallenge.endDate)
+      if (isNaN(endDateValid.getTime())) {
+        toast.error('Please enter a valid end date')
+        return
+      }
+      
+      // Check if end date is not in the past
+      const now = new Date()
+      if (endDateValid <= now) {
+        toast.error('End date must be in the future')
+        return
+      }
+      
+      // Check if end date is not too far in the future (e.g., more than 2 years)
+      const twoYearsFromNow = new Date()
+      twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2)
+      if (endDateValid > twoYearsFromNow) {
+        toast.error('End date cannot be more than 2 years in the future')
+        return
+      }
     }
 
     const challenge: Omit<Challenge, 'id' | 'createdAt'> = {
       code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-      title: newChallenge.title,
-      description: newChallenge.description,
+      title: sanitizedTitle,
+      description: sanitizedDescription || '',
       createdBy: currentUserId,
       participants: [currentUserId],
       tasks: [],
       isActive: true,
-      endDate: newChallenge.endDate ? new Date(newChallenge.endDate) : undefined
+      endDate: endDateValid
     }
 
     onCreateChallenge(challenge)

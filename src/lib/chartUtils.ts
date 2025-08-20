@@ -248,7 +248,7 @@ export function getSubjectWeeklyData(sessions: StudySession[], subjects: Subject
             return sessionDate >= weekStart && sessionDate <= weekEnd && 
                    session.completed && session.subjectId === subject.id
           } catch (error) {
-            console.error('Error processing session date:', error)
+            // Skip invalid session dates in production
             return false
           }
         })
@@ -273,7 +273,7 @@ export function getSubjectWeeklyData(sessions: StudySession[], subjects: Subject
     
     return subjectWeeklyData
   } catch (error) {
-    console.error('Error in getSubjectWeeklyData:', error)
+    // Error handling removed for production
     return {}
   }
 }
@@ -301,7 +301,7 @@ export function getSubjectMonthlyData(sessions: StudySession[], subjects: Subjec
             return sessionDate >= monthStart && sessionDate <= monthEnd && 
                    session.completed && session.subjectId === subject.id
           } catch (error) {
-            console.error('Error processing session date:', error)
+            // Error handling removed for production
             return false
           }
         })
@@ -326,7 +326,7 @@ export function getSubjectMonthlyData(sessions: StudySession[], subjects: Subjec
     
     return subjectMonthlyData
   } catch (error) {
-    console.error('Error in getSubjectMonthlyData:', error)
+    // Error handling removed for production
     return {}
   }
 }
@@ -355,7 +355,7 @@ export function getSubjectComparison(sessions: StudySession[], subjects: Subject
           const sessionDate = new Date(session.startTime)
           return sessionDate >= thisWeekStart && session.completed && session.subjectId === subject.id
         } catch (error) {
-          console.error('Error processing session date:', error)
+          // Error handling removed for production
           return false
         }
       })
@@ -366,7 +366,7 @@ export function getSubjectComparison(sessions: StudySession[], subjects: Subject
           return sessionDate >= lastWeekStart && sessionDate <= lastWeekEnd && 
                  session.completed && session.subjectId === subject.id
         } catch (error) {
-          console.error('Error processing session date:', error)
+          // Error handling removed for production
           return false
         }
       })
@@ -382,7 +382,7 @@ export function getSubjectComparison(sessions: StudySession[], subjects: Subject
       }
     }).filter(data => data.thisWeek > 0 || data.lastWeek > 0)
   } catch (error) {
-    console.error('Error in getSubjectComparison:', error)
+    // Error handling removed for production
     return []
   }
 }

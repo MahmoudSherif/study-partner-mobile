@@ -31,7 +31,7 @@ export class DataSyncService {
   // Initialize sync for a user
   async initializeSync(user: MockUser) {
     this.user = user
-    console.log('Mock data sync initialized for user:', user.email)
+    // Data sync initialized for production
     
     // Emit sync success event
     window.dispatchEvent(new CustomEvent('dataSync'))
@@ -40,14 +40,14 @@ export class DataSyncService {
   // Clean up sync when user logs out
   cleanup() {
     this.user = null
-    console.log('Mock data sync cleaned up')
+    // Data sync cleanup for production
   }
 
   // Mock sync to Firestore (does nothing in demo)
   async syncToFirestore() {
     if (!this.user) return
     
-    console.log('Mock sync to Firestore for user:', this.user.email)
+    // Production sync to Firestore
     
     // Emit sync events for UI feedback
     window.dispatchEvent(new CustomEvent('syncStart'))

@@ -1,10 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Bell, BellOff, Settings, TestTube } from '@phosphor-icons/react'
+import { Bell, BellOff, Settings } from '@phosphor-icons/react'
 import { useState, useEffect } from 'react'
 import { notificationManager, initializeNotifications } from '@/lib/notifications'
 import { toast } from 'sonner'
@@ -12,9 +9,6 @@ import { toast } from 'sonner'
 export function NotificationSettings() {
   const [isSupported, setIsSupported] = useState(false)
   const [permission, setPermission] = useState<NotificationPermission>('default')
-  const [showTestDialog, setShowTestDialog] = useState(false)
-  const [testTitle, setTestTitle] = useState('Test Achievement!')
-  const [testMessage, setTestMessage] = useState('This is a test notification from MotivaMate')
 
   useEffect(() => {
     const checkSupport = () => {
@@ -44,32 +38,8 @@ export function NotificationSettings() {
         toast.error('Notifications are not supported on this device.')
       }
     } catch (error) {
-      console.error('Error requesting notification permission:', error)
+      // Error handling for production
       toast.error('Failed to enable notifications.')
-    }
-  }
-
-  const handleTestNotification = async () => {
-    try {
-      await notificationManager.showNotification({
-        title: testTitle,
-        body: testMessage,
-        tag: 'test-notification',
-        requireInteraction: true,
-        actions: [
-          {
-            action: 'view',
-            title: 'View App',
-            icon: '/icons/favicon-16x16.png'
-          }
-        ]
-      })
-      
-      setShowTestDialog(false)
-      toast.success('Test notification sent!')
-    } catch (error) {
-      console.error('Error sending test notification:', error)
-      toast.error('Failed to send test notification.')
     }
   }
 
@@ -162,17 +132,6 @@ export function NotificationSettings() {
                 Enable Notifications
               </Button>
             )}
-            
-            {permission === 'granted' && (
-              <Button
-                onClick={() => setShowTestDialog(true)}
-                variant="outline"
-                className="flex-1 bg-white/10 hover:bg-white/20 text-white border-white/30"
-              >
-                <TestTube size={16} className="mr-2" />
-                Test Notification
-              </Button>
-            )}
           </div>
 
           {permission === 'denied' && (
@@ -192,47 +151,6 @@ export function NotificationSettings() {
           )}
         </CardContent>
       </Card>
-
-      {/* Test Notification Dialog */}
-      <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
-        <DialogContent className="bg-black/90 backdrop-blur-md border-white/20 text-white">
-          <DialogHeader>
-            <DialogTitle className="text-white">Test Notification</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              placeholder="Notification title"
-              value={testTitle}
-              onChange={(e) => setTestTitle(e.target.value)}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-            />
-            
-            <Textarea
-              placeholder="Notification message"
-              value={testMessage}
-              onChange={(e) => setTestMessage(e.target.value)}
-              className="bg-white/10 border-white/20 text-white placeholder:text-white/50 resize-none h-20"
-            />
-            
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setShowTestDialog(false)}
-                variant="outline"
-                className="flex-1 bg-white/10 hover:bg-white/20 text-white border-white/30"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleTestNotification}
-                className="flex-1 bg-accent hover:bg-accent/80 text-accent-foreground"
-                disabled={!testTitle.trim() || !testMessage.trim()}
-              >
-                Send Test
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

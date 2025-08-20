@@ -90,26 +90,46 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
 
   // Start focus session
   const startSession = () => {
-    if (!sessionTitle.trim()) {
+    // Input validation and sanitization
+    const sanitizedTitle = sessionTitle.trim()
+    const sanitizedCategory = sessionCategory?.trim()
+    const sanitizedNotes = sessionNotes?.trim()
+    
+    if (!sanitizedTitle) {
       toast.error('Please enter a focus title')
+      return
+    }
+    
+    if (sanitizedTitle.length > 100) {
+      toast.error('Focus title is too long (max 100 characters)')
+      return
+    }
+    
+    if (sanitizedCategory && sanitizedCategory.length > 50) {
+      toast.error('Category is too long (max 50 characters)')
+      return
+    }
+    
+    if (sanitizedNotes && sanitizedNotes.length > 500) {
+      toast.error('Notes are too long (max 500 characters)')
       return
     }
 
     const newSession: FocusSession = {
       id: Date.now().toString(),
-      title: sessionTitle.trim(),
+      title: sanitizedTitle,
       duration: 0,
       startTime: new Date(),
       completed: false,
-      category: sessionCategory || undefined,
-      notes: sessionNotes || undefined
+      category: sanitizedCategory || undefined,
+      notes: sanitizedNotes || undefined
     }
 
     setCurrentSession(newSession)
     setCurrentTime(0)
     setIsRunning(true)
     mobileFeedback.buttonPress()
-    toast.success(`Focus session started: ${sessionTitle}`)
+    toast.success(`Focus session started: ${sanitizedTitle}`)
   }
 
   // Pause/resume session
@@ -130,24 +150,16 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       completed: true
     }
 
-    console.log('Saving focus session:', {
-      title: completedSession.title,
-      duration: completedSession.duration,
-      startTime: completedSession.startTime,
-      endTime: completedSession.endTime,
-      currentTime: currentTime
-    })
-
     // Save session
     setFocusSessions(current => {
       const updated = [...current, completedSession]
-      console.log('Updated focus sessions:', updated)
       return updated
     })
     
     // Update goals progress
     updateGoalsProgress(sessionMinutes).catch(error => {
-      console.error('Error updating goals progress:', error)
+      // Silent error handling for goals progress
+    })
     })
 
     // Reset timer state
@@ -209,7 +221,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
             // Queue push notification for goal achievement
             notificationPromises.push(
               notificationManager.notifyGoalAchievement(goal.title, goal.description)
-                .catch(error => console.error('Failed to send goal achievement notification:', error))
+                .catch(error => {
+                  // Silent notification failure
+                })
             )
             
             // Check for goal achievement milestone
@@ -239,7 +253,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
                 notificationManager.notifyAchievementUnlock(
                   goalAchieverAchievement.title,
                   goalAchieverAchievement.description
-                ).catch(error => console.error('Failed to send achievement notification:', error))
+                ).catch(error => {
+                  // Silent notification failure
+                })
               )
             }
           }
@@ -270,25 +286,70 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
       // Send all queued notifications
       await Promise.allSettled(notificationPromises)
     } catch (error) {
-      console.error('Error updating goals progress:', error)
-      // Don't show user error, just log it
+      // Silent error handling for goals progress
     }
   }
 
   // Add new goal
   const addGoal = async () => {
-    if (!newGoal.title.trim()) {
+    // Input validation and sanitization
+    const sanitizedTitle = newGoal.title.trim()
+    const sanitizedDescription = newGoal.description?.trim()
+    
+    if (!sanitizedTitle) {
       toast.error('Please enter a goal title')
       return
+    }
+    
+    if (sanitizedTitle.length > 100) {
+      toast.error('Goal title is too long (max 100 characters)')
+      return
+    }
+    
+    if (sanitizedDescription && sanitizedDescription.length > 500) {
+      toast.error('Goal description is too long (max 500 characters)')
+      return
+    }
+    
+    // Validate target
+    if (newGoal.target < 1 || newGoal.target > 10000) {
+      toast.error('Goal target must be between 1 and 10000')
+      return
+    }
+    
+    // Validate deadline
+    let deadlineValid: Date | undefined
+    if (newGoal.deadline) {
+      deadlineValid = new Date(newGoal.deadline)
+      if (isNaN(deadlineValid.getTime())) {
+        toast.error('Please enter a valid deadline')
+        return
+      }
+      
+      // Check if deadline is not in the past
+      const now = new Date()
+      now.setHours(0, 0, 0, 0) // Start of today
+      if (deadlineValid < now) {
+        toast.error('Deadline cannot be in the past')
+        return
+      }
+      
+      // Check if deadline is not too far in the future (e.g., more than 2 years)
+      const twoYearsFromNow = new Date()
+      twoYearsFromNow.setFullYear(twoYearsFromNow.getFullYear() + 2)
+      if (deadlineValid > twoYearsFromNow) {
+        toast.error('Deadline cannot be more than 2 years in the future')
+        return
+      }
     }
 
     const goal: Goal = {
       id: Date.now().toString(),
-      title: newGoal.title.trim(),
-      description: newGoal.description || undefined,
+      title: sanitizedTitle,
+      description: sanitizedDescription || undefined,
       target: newGoal.target,
       current: 0,
-      deadline: newGoal.deadline ? new Date(newGoal.deadline) : undefined,
+      deadline: deadlineValid,
       category: newGoal.category,
       isCompleted: false,
       createdAt: new Date()
@@ -332,7 +393,7 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
           unlockedAchievement.description
         )
       } catch (error) {
-        console.error('Failed to send achievement notification:', error)
+        // Silent notification failure
       }
     }
     
@@ -507,35 +568,6 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
               >
                 <Play size={16} className="mr-2" />
                 Start Focus Session
-              </Button>
-              
-              {/* Quick Test Button for 1-minute session */}
-              <Button 
-                onClick={() => {
-                  // Auto-start and complete a 1-minute session for testing
-                  const testSession: FocusSession = {
-                    id: Date.now().toString(),
-                    title: 'Test Focus Session - 1 minute',
-                    duration: 1, // 1 minute
-                    startTime: new Date(),
-                    endTime: new Date(),
-                    completed: true,
-                    category: 'test'
-                  }
-                  
-                  setFocusSessions(current => {
-                    const updated = [...current, testSession]
-                    console.log('Added test focus session:', testSession)
-                    console.log('All focus sessions now:', updated)
-                    return updated
-                  })
-                  
-                  toast.success('Test 1-minute focus session added! Check your Profile > Activity tab.')
-                }}
-                variant="outline"
-                className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border-blue-500/30"
-              >
-                🧪 Add Test 1-min Session
               </Button>
             </div>
           ) : (

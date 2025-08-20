@@ -39,10 +39,10 @@ export function usePWA(): PWAHookReturn {
       try {
         if ('serviceWorker' in navigator) {
           const registration = await navigator.serviceWorker.register('/sw.js')
-          console.log('ServiceWorker registered:', registration)
+          // Production logging removed
         }
       } catch (error) {
-        console.debug('ServiceWorker registration failed:', error)
+        // Production logging removed
       }
     }
 
@@ -92,7 +92,7 @@ export function usePWA(): PWAHookReturn {
       
       return false
     } catch (error) {
-      console.error('Error installing app:', error)
+      // Production logging removed
       return false
     }
   }

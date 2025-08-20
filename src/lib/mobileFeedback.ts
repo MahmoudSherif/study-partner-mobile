@@ -117,7 +117,7 @@ export const audioFeedback = {
       }, duration + 100)
     } catch (e) {
       // Silently ignore all audio errors
-      console.debug('Audio feedback not available:', e)
+      // Audio feedback not available - silent fallback
     }
   },
   
@@ -243,56 +243,5 @@ export function useFeedbackPreferences() {
     audioEnabled: getPreference('audio'),
     setHapticEnabled: (enabled: boolean) => setPreference('haptic', enabled),
     setAudioEnabled: (enabled: boolean) => setPreference('audio', enabled)
-  }
-}
-
-// Enhanced feedback functions with logging and preferences
-export const mobileFeedbackWithPreferences = {
-  buttonPress: () => {
-    console.log('🔘 Button press feedback triggered')
-    hapticFeedback.light()
-    audioFeedback.tick()
-  },
-  
-  taskComplete: () => {
-    console.log('✅ Task completion feedback triggered')
-    hapticFeedback.taskComplete()
-    audioFeedback.taskComplete()
-  },
-  
-  challengeTaskComplete: () => {
-    console.log('🏆 Challenge task completion feedback triggered')
-    hapticFeedback.challengeTaskComplete()
-    audioFeedback.challengeTaskComplete()
-  },
-  
-  studySessionComplete: () => {
-    console.log('📚 Study session completion feedback triggered')
-    hapticFeedback.studySessionComplete()
-    audioFeedback.studySessionComplete()
-  },
-  
-  achievement: () => {
-    console.log('🏅 Achievement feedback triggered')
-    hapticFeedback.achievement()
-    audioFeedback.celebration()
-  },
-  
-  progressMilestone: () => {
-    console.log('🎯 Progress milestone feedback triggered')
-    hapticFeedback.progressMilestone()
-    audioFeedback.progressMilestone()
-  },
-  
-  error: () => {
-    console.log('❌ Error feedback triggered')
-    hapticFeedback.error()
-    audioFeedback.error()
-  },
-  
-  notification: () => {
-    console.log('🔔 Notification feedback triggered')
-    hapticFeedback.notification()
-    audioFeedback.notification()
   }
 }

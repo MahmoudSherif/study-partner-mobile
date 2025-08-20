@@ -31,7 +31,7 @@ function SubjectChartsWrapper({ children, currentSubject }: { children: React.Re
   try {
     return <>{children}</>
   } catch (error) {
-    console.error('Error rendering subject charts:', error)
+    // Error handling for production
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-8">
@@ -76,7 +76,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       if (!sessions || !Array.isArray(sessions)) return []
       return getWeeklyData(sessions)
     } catch (error) {
-      console.error('Error calculating weekly data:', error)
+      // Error handling for production
       return []
     }
   }, [sessions])
@@ -86,7 +86,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       if (!sessions || !Array.isArray(sessions)) return []
       return getMonthlyData(sessions)
     } catch (error) {
-      console.error('Error calculating monthly data:', error)
+      // Error handling for production
       return []
     }
   }, [sessions])
@@ -96,7 +96,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       if (!sessions || !Array.isArray(sessions) || !subjects || !Array.isArray(subjects)) return []
       return getDailyData(sessions, subjects)
     } catch (error) {
-      console.error('Error calculating daily data:', error)
+      // Error handling for production
       return []
     }
   }, [sessions, subjects])
@@ -112,7 +112,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       
       return getSubjectWeeklyData(sessions, validSubjects)
     } catch (error) {
-      console.error('Error calculating subject weekly data:', error)
+      // Error handling for production
       return {}
     }
   }, [sessions, subjects])
@@ -128,7 +128,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       
       return getSubjectMonthlyData(sessions, validSubjects)
     } catch (error) {
-      console.error('Error calculating subject monthly data:', error)
+      // Error handling for production
       return {}
     }
   }, [sessions, subjects])
@@ -144,7 +144,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       
       return getSubjectComparison(sessions, validSubjects)
     } catch (error) {
-      console.error('Error calculating subject comparison:', error)
+      // Error handling for production
       return []
     }
   }, [sessions, subjects])
@@ -158,7 +158,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       }
       return subjects[0]?.id || ''
     } catch (error) {
-      console.error('Error getting current subject ID:', error)
+      // Error handling for production
       return subjects?.[0]?.id || ''
     }
   }, [selectedSubject, subjects])
@@ -168,7 +168,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
       if (!subjects || !Array.isArray(subjects) || !currentSubjectId) return null
       return subjects.find(s => s && s.id === currentSubjectId) || null
     } catch (error) {
-      console.error('Error getting current subject:', error)
+      // Error handling for production
       return null
     }
   }, [subjects, currentSubjectId])
@@ -433,7 +433,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                           }
                         }
                       } catch (error) {
-                        console.error('Error changing subject:', error)
+                        // Error handling for production
                         // Reset to first subject if there's an error
                         if (subjects && Array.isArray(subjects) && subjects.length > 0 && subjects[0]?.id) {
                           setSelectedSubject(subjects[0].id)

@@ -37,7 +37,6 @@ export class NotificationManager {
 
   async initialize(): Promise<boolean> {
     if (!this.isSupported) {
-      console.log('Notifications not supported');
       return false;
     }
 
@@ -47,14 +46,11 @@ export class NotificationManager {
         scope: '/'
       });
 
-      console.log('Service Worker registered successfully');
-
       // Wait for service worker to be ready
       await navigator.serviceWorker.ready;
 
       return true;
     } catch (error) {
-      console.error('Service Worker registration failed:', error);
       return false;
     }
   }
@@ -72,14 +68,12 @@ export class NotificationManager {
       this.permission = await Notification.requestPermission();
       return this.permission;
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
       return 'denied';
     }
   }
 
   async showNotification(data: NotificationData): Promise<boolean> {
     if (!this.isSupported || this.permission !== 'granted' || !this.registration) {
-      console.log('Cannot show notification: not supported or permission denied');
       return false;
     }
 
@@ -100,7 +94,6 @@ export class NotificationManager {
       await this.registration.showNotification(data.title, options);
       return true;
     } catch (error) {
-      console.error('Error showing notification:', error);
       return false;
     }
   }

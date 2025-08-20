@@ -71,26 +71,45 @@ export const mockAuthFunctions = {
     await simulateDelay(800)
     
     try {
-      // Basic validation
-      if (!email || !password) {
+      // Input sanitization and validation
+      const sanitizedEmail = email?.trim().toLowerCase()
+      const sanitizedDisplayName = displayName?.trim()
+      
+      if (!sanitizedEmail || !password) {
         return { user: null, error: 'Email and password are required' }
       }
       
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(sanitizedEmail)) {
+        return { user: null, error: 'Please enter a valid email address' }
+      }
+      
+      // Password strength validation
       if (password.length < 6) {
         return { user: null, error: 'Password must be at least 6 characters long' }
       }
       
+      if (password.length > 128) {
+        return { user: null, error: 'Password is too long' }
+      }
+      
+      // Display name validation
+      if (sanitizedDisplayName && sanitizedDisplayName.length > 50) {
+        return { user: null, error: 'Display name is too long' }
+      }
+      
       // Check if user already exists
       const existingUsers = JSON.parse(localStorage.getItem('mockAuth_users') || '[]')
-      if (existingUsers.find((u: any) => u.email === email)) {
+      if (existingUsers.find((u: any) => u.email === sanitizedEmail)) {
         return { user: null, error: 'This email is already registered. Please sign in instead.' }
       }
       
-      // Create new user
+      // Create new user with sanitized data
       const user: MockUser = {
-        uid: 'user_' + Date.now().toString(36),
-        email,
-        displayName: displayName || email.split('@')[0]
+        uid: 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36),
+        email: sanitizedEmail,
+        displayName: sanitizedDisplayName || sanitizedEmail.split('@')[0]
       }
       
       // Save user to localStorage
@@ -111,14 +130,22 @@ export const mockAuthFunctions = {
     await simulateDelay(800)
     
     try {
-      // Basic validation
-      if (!email || !password) {
+      // Input sanitization and validation
+      const sanitizedEmail = email?.trim().toLowerCase()
+      
+      if (!sanitizedEmail || !password) {
         return { user: null, error: 'Email and password are required' }
+      }
+      
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(sanitizedEmail)) {
+        return { user: null, error: 'Please enter a valid email address' }
       }
       
       // Find user
       const existingUsers = JSON.parse(localStorage.getItem('mockAuth_users') || '[]')
-      const user = existingUsers.find((u: any) => u.email === email)
+      const user = existingUsers.find((u: any) => u.email === sanitizedEmail)
       
       if (!user) {
         return { user: null, error: 'No account found with this email. Please sign up first.' }
@@ -126,7 +153,7 @@ export const mockAuthFunctions = {
       
       // In a real app, you'd verify the password hash
       // For demo purposes, we'll just check if it's not empty
-      if (!password) {
+      if (!password || password.length === 0) {
         return { user: null, error: 'Please enter your password' }
       }
       

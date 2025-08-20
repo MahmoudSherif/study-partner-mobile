@@ -11,8 +11,6 @@ export function ActivityGrid({ sessions }: ActivityGridProps) {
     const today = new Date()
     const days = []
     
-    console.log('ActivityGrid: Calculating activity for', sessions.length, 'sessions')
-    
     // Go back 70 days (10 weeks)
     for (let i = 69; i >= 0; i--) {
       const date = new Date(today)
@@ -23,15 +21,7 @@ export function ActivityGrid({ sessions }: ActivityGridProps) {
       const dayMinutes = sessions
         .filter(session => {
           const sessionDate = new Date(session.startTime)
-          const isToday = sessionDate.toDateString() === dateString
-          if (isToday && i < 3) { // Debug recent days
-            console.log('ActivityGrid: Session for', dateString, ':', {
-              sessionDate: sessionDate.toDateString(),
-              duration: session.duration,
-              subjectId: session.subjectId
-            })
-          }
-          return isToday
+          return sessionDate.toDateString() === dateString
         })
         .reduce((total, session) => total + session.duration, 0)
       
@@ -40,12 +30,6 @@ export function ActivityGrid({ sessions }: ActivityGridProps) {
         minutes: dayMinutes,
         level: getIntensityLevel(dayMinutes)
       })
-    }
-    
-    // Debug today's activity
-    const todayData = days[days.length - 1]
-    if (todayData && todayData.minutes > 0) {
-      console.log('ActivityGrid: Today activity:', todayData)
     }
     
     return days

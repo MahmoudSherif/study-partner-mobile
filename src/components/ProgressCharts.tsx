@@ -45,6 +45,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const subjectWeeklyData = useMemo(() => {
     try {
+      if (!subjects || subjects.length === 0) return {}
       return getSubjectWeeklyData(sessions, subjects)
     } catch (error) {
       console.error('Error calculating subject weekly data:', error)
@@ -54,6 +55,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const subjectMonthlyData = useMemo(() => {
     try {
+      if (!subjects || subjects.length === 0) return {}
       return getSubjectMonthlyData(sessions, subjects)
     } catch (error) {
       console.error('Error calculating subject monthly data:', error)
@@ -63,6 +65,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
   
   const subjectComparison = useMemo(() => {
     try {
+      if (!subjects || subjects.length === 0) return []
       return getSubjectComparison(sessions, subjects)
     } catch (error) {
       console.error('Error calculating subject comparison:', error)
@@ -70,18 +73,25 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
     }
   }, [sessions, subjects])
 
-  // Set default selected subject to first available subject, but ensure it's valid
-  const defaultSubject = selectedSubject && subjects.find(s => s.id === selectedSubject) 
-    ? selectedSubject 
-    : (subjects.length > 0 ? subjects[0].id : '')
-  const currentSubject = subjects.find(s => s.id === defaultSubject)
-
-  // Reset selected subject if it's no longer valid when subjects change
+  // Initialize selected subject on first load or when subjects change
   useEffect(() => {
-    if (selectedSubject && !subjects.find(s => s.id === selectedSubject)) {
-      setSelectedSubject(subjects.length > 0 ? subjects[0].id : '')
+    if (subjects.length > 0) {
+      // If no subject is selected or current selection is invalid, select first subject
+      if (!selectedSubject || !subjects.find(s => s.id === selectedSubject)) {
+        setSelectedSubject(subjects[0].id)
+      }
+    } else {
+      // Clear selection if no subjects exist
+      setSelectedSubject('')
     }
   }, [subjects, selectedSubject])
+
+  // Get current subject data safely
+  const currentSubjectId = selectedSubject && subjects.find(s => s.id === selectedSubject) 
+    ? selectedSubject 
+    : (subjects.length > 0 ? subjects[0].id : '')
+  
+  const currentSubject = subjects.find(s => s.id === currentSubjectId)
 
   return (
     <div className="space-y-4">
@@ -321,12 +331,19 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                 </CardHeader>
                 <CardContent>
                   <Select 
-                    value={defaultSubject} 
+                    value={currentSubjectId} 
                     onValueChange={(value) => {
                       try {
                         // Ensure the selected subject actually exists before setting it
-                        if (subjects.find(s => s.id === value)) {
+                        const selectedSubjectExists = subjects.find(s => s.id === value)
+                        if (selectedSubjectExists) {
                           setSelectedSubject(value)
+                        } else {
+                          console.warn('Selected subject does not exist:', value)
+                          // Fallback to first subject if selection is invalid
+                          if (subjects.length > 0) {
+                            setSelectedSubject(subjects[0].id)
+                          }
                         }
                       } catch (error) {
                         console.error('Error changing subject:', error)
@@ -358,7 +375,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               </Card>
 
               {/* Subject Weekly Progress */}
-              {currentSubject && subjectWeeklyData[defaultSubject] && subjectWeeklyData[defaultSubject].length > 0 && (
+              {currentSubject && currentSubjectId && subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2 text-white">
@@ -375,7 +392,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                   <CardContent>
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={subjectWeeklyData[defaultSubject] || []}>
+                        <AreaChart data={subjectWeeklyData[currentSubjectId] || []}>
                           <XAxis 
                             dataKey="week" 
                             axisLine={false}
@@ -403,7 +420,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
               )}
 
               {/* Subject Monthly Trends */}
-              {currentSubject && subjectMonthlyData[defaultSubject] && subjectMonthlyData[defaultSubject].length > 0 && (
+              {currentSubject && currentSubjectId && subjectMonthlyData[currentSubjectId] && subjectMonthlyData[currentSubjectId].length > 0 && (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center gap-2 text-white">
@@ -420,7 +437,7 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                   <CardContent>
                     <div className="h-48">
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={subjectMonthlyData[defaultSubject] || []}>
+                        <LineChart data={subjectMonthlyData[currentSubjectId] || []}>
                           <XAxis 
                             dataKey="month" 
                             axisLine={false}
@@ -515,21 +532,21 @@ export function ProgressCharts({ sessions, subjects }: ProgressChartsProps) {
                         <span className="font-medium text-white">{currentSubject.totalTime} minutes</span>
                       </div>
                       
-                      {subjectWeeklyData[defaultSubject] && subjectWeeklyData[defaultSubject].length > 0 && (
+                      {subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white/70">This Week</span>
                           <span className="font-medium text-white">
-                            {subjectWeeklyData[defaultSubject][subjectWeeklyData[defaultSubject].length - 1]?.minutes || 0} minutes
+                            {subjectWeeklyData[currentSubjectId][subjectWeeklyData[currentSubjectId].length - 1]?.minutes || 0} minutes
                           </span>
                         </div>
                       )}
                       
-                      {subjectWeeklyData[defaultSubject] && subjectWeeklyData[defaultSubject].length > 0 && (
+                      {subjectWeeklyData[currentSubjectId] && subjectWeeklyData[currentSubjectId].length > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-white/70">Weekly Average</span>
                           <span className="font-medium text-white">
                             {Math.round(
-                              subjectWeeklyData[defaultSubject].reduce((sum, week) => sum + week.minutes, 0) / subjectWeeklyData[defaultSubject].length
+                              subjectWeeklyData[currentSubjectId].reduce((sum, week) => sum + week.minutes, 0) / subjectWeeklyData[currentSubjectId].length
                             )} minutes
                           </span>
                         </div>

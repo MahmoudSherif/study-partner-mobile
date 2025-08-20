@@ -158,6 +158,9 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
   const updateGoalsProgress = async (minutes: number) => {
     try {
       const today = new Date()
+      const notificationPromises: Promise<void>[] = []
+      let achievementToUpdate: any = null
+      
       const updatedGoals = goals.map(goal => {
         let shouldUpdate = false
         
@@ -195,12 +198,11 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
             mobileFeedback.achievement()
             toast.success(`🎯 Goal completed: ${goal.title}!`)
             
-            // Send push notification for goal achievement
-            try {
-              await notificationManager.notifyGoalAchievement(goal.title, goal.description)
-            } catch (error) {
-              console.error('Failed to send goal achievement notification:', error)
-            }
+            // Queue push notification for goal achievement
+            notificationPromises.push(
+              notificationManager.notifyGoalAchievement(goal.title, goal.description)
+                .catch(error => console.error('Failed to send goal achievement notification:', error))
+            )
             
             // Check for goal achievement milestone
             const completedGoalsCount = goals.filter(g => g.isCompleted).length + 1 // +1 for this newly completed goal
@@ -219,22 +221,18 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
                 return achievement
               })
               
-              onUpdateAchievements(updatedAchievements)
-              mobileFeedback.achievement()
-              toast.success(`Achievement Unlocked: ${goalAchieverAchievement.title}!`, {
-                description: goalAchieverAchievement.description,
-                duration: 5000
-              })
+              achievementToUpdate = {
+                achievements: updatedAchievements,
+                achievement: goalAchieverAchievement
+              }
               
-              // Send push notification for achievement unlock
-              try {
-                await notificationManager.notifyAchievementUnlock(
+              // Queue push notification for achievement unlock
+              notificationPromises.push(
+                notificationManager.notifyAchievementUnlock(
                   goalAchieverAchievement.title,
                   goalAchieverAchievement.description
-                )
-              } catch (error) {
-                console.error('Failed to send achievement notification:', error)
-              }
+                ).catch(error => console.error('Failed to send achievement notification:', error))
+              )
             }
           }
 
@@ -248,7 +246,21 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
         return goal
       })
 
+      // Update goals first
       setGoals(updatedGoals)
+      
+      // Handle achievement updates
+      if (achievementToUpdate) {
+        onUpdateAchievements(achievementToUpdate.achievements)
+        mobileFeedback.achievement()
+        toast.success(`Achievement Unlocked: ${achievementToUpdate.achievement.title}!`, {
+          description: achievementToUpdate.achievement.description,
+          duration: 5000
+        })
+      }
+      
+      // Send all queued notifications
+      await Promise.allSettled(notificationPromises)
     } catch (error) {
       console.error('Error updating goals progress:', error)
       // Don't show user error, just log it

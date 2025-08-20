@@ -130,6 +130,12 @@ function AppContent() {
     }
   }, [])
 
+  // Get current user ID from Firebase Auth
+  const currentUserId = user?.uid || 'anonymous'
+  
+  // User-specific data keys - each user has their own data namespace
+  const userDataKey = (key: string) => `${currentUserId}-${key}`
+
   const [subjects, setSubjects] = useKV<Subject[]>(userDataKey('study-subjects'), [])
   const [sessions, setSessions] = useKV<StudySession[]>(userDataKey('study-sessions'), [])
   const [achievements, setAchievements] = useKV<Achievement[]>(userDataKey('achievements'), INITIAL_ACHIEVEMENTS)
@@ -153,12 +159,6 @@ function AppContent() {
     isChallenge: false
   })
   const [showChallengeProgress, setShowChallengeProgress] = useState(false)
-
-  // Get current user ID from Firebase Auth
-  const currentUserId = user?.uid || 'anonymous'
-  
-  // User-specific data keys - each user has their own data namespace
-  const userDataKey = (key: string) => `${currentUserId}-${key}`
 
   // Combine regular study sessions and focus sessions for stats calculation
   const stats = calculateUserStats(sessions, focusSessions)

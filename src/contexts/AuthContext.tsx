@@ -1,14 +1,20 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { User } from 'firebase/auth'
 import { authFunctions } from '@/lib/firebase'
 import { initializeDataSync, cleanupDataSync } from '@/lib/dataSync'
 
+// Mock user type for demo auth
+interface MockUser {
+  uid: string
+  email: string | null
+  displayName: string | null
+}
+
 interface AuthContextType {
-  user: User | null
+  user: MockUser | null
   loading: boolean
-  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: User | null; error: string | null }>
-  signIn: (email: string, password: string) => Promise<{ user: User | null; error: string | null }>
-  signInWithGoogle: () => Promise<{ user: User | null; error: string | null }>
+  signUp: (email: string, password: string, displayName?: string) => Promise<{ user: MockUser | null; error: string | null }>
+  signIn: (email: string, password: string) => Promise<{ user: MockUser | null; error: string | null }>
+  signInWithGoogle: () => Promise<{ user: MockUser | null; error: string | null }>
   signOut: () => Promise<{ error: string | null }>
 }
 
@@ -27,7 +33,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<MockUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

@@ -1,16 +1,16 @@
-// Test Firebase connection
+// Test Mock Auth connection
 import { authFunctions, firestoreFunctions } from './firebase'
 
 export const testFirebaseConnection = async () => {
   try {
-    console.log('Testing Firebase connection...')
+    console.log('Testing Mock Auth connection...')
     
     // Test auth state listener
     const unsubscribe = authFunctions.onAuthStateChanged((user) => {
       if (user) {
-        console.log('✅ Firebase Auth connected - User:', user.email)
+        console.log('✅ Mock Auth connected - User:', user.email)
       } else {
-        console.log('🔒 Firebase Auth connected - No user logged in')
+        console.log('🔒 Mock Auth connected - No user logged in')
       }
     })
     
@@ -19,10 +19,10 @@ export const testFirebaseConnection = async () => {
       unsubscribe()
     }, 1000)
     
-    console.log('✅ Firebase connection test completed')
+    console.log('✅ Mock Auth connection test completed')
     return true
   } catch (error) {
-    console.error('❌ Firebase connection failed:', error)
+    console.error('❌ Mock Auth connection failed:', error)
     return false
   }
 }

@@ -209,15 +209,15 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
         </p>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="daily" className="w-full">
+        <Tabs defaultValue="today" className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
+            <TabsTrigger value="today" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
+              <Clock size={14} className="mr-1" />
+              Today
+            </TabsTrigger>
             <TabsTrigger value="daily" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               <Calendar size={14} className="mr-1" />
               Daily
-            </TabsTrigger>
-            <TabsTrigger value="hourly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
-              <Clock size={14} className="mr-1" />
-              Today
             </TabsTrigger>
             <TabsTrigger value="weekly" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
               <Calendar size={14} className="mr-1" />
@@ -228,6 +228,68 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
               Monthly
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="today" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-white">Today's Activity (24 hours)</h4>
+              <div className="flex items-end justify-between gap-1 h-32 bg-black/20 rounded-lg p-3 overflow-x-auto">
+                {hourlyData.map((hour, index) => (
+                  <div key={index} className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
+                    <div 
+                      className="w-3 bg-gradient-to-t from-accent to-accent/60 rounded-t-sm transition-all duration-300 hover:from-accent/80 hover:to-accent/40 cursor-pointer relative group"
+                      style={{ height: `${hour.height}%` }}
+                      title={`${hour.label}: ${formatTime(hour.minutes)} (${hour.sessions} sessions)`}
+                    >
+                      {/* Tooltip content - shown on hover */}
+                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        {hour.label}: {formatTime(hour.minutes)}
+                      </div>
+                    </div>
+                    <div className="text-xs text-white/70 text-center transform -rotate-45 origin-center mt-2">
+                      {hour.shortLabel}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Hourly Summary */}
+              <div className="grid grid-cols-3 gap-3 text-xs">
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Total Today</div>
+                  <div className="text-white font-medium">
+                    {formatTime(hourlyData.reduce((sum, hour) => sum + hour.minutes, 0))}
+                  </div>
+                  <div className="text-white/50">
+                    {hourlyData.reduce((sum, hour) => sum + hour.sessions, 0)} sessions
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Peak Hour</div>
+                  <div className="text-white font-medium">
+                    {(() => {
+                      const peakHour = hourlyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, hourlyData[0])
+                      return peakHour.minutes > 0 ? peakHour.label : 'N/A'
+                    })()}
+                  </div>
+                  <div className="text-white/50">
+                    {(() => {
+                      const peakHour = hourlyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, hourlyData[0])
+                      return peakHour.minutes > 0 ? formatTime(peakHour.minutes) : '0m'
+                    })()}
+                  </div>
+                </div>
+                <div className="bg-black/20 rounded-lg p-3">
+                  <div className="text-white/70">Active Hours</div>
+                  <div className="text-white font-medium">
+                    {hourlyData.filter(hour => hour.minutes > 0).length}
+                  </div>
+                  <div className="text-white/50">
+                    of 24 hours
+                  </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
 
           <TabsContent value="daily" className="space-y-4 mt-4">
             <div className="space-y-3">
@@ -289,68 +351,6 @@ export function ActivityCharts({ sessions }: ActivityChartsProps) {
                   </div>
                   <div className="text-white/50">
                     {Math.round(dailyData.reduce((sum, day) => sum + day.sessions, 0) / 7)} sessions
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="hourly" className="space-y-4 mt-4">
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-white">Today's Activity (24 hours)</h4>
-              <div className="flex items-end justify-between gap-1 h-32 bg-black/20 rounded-lg p-3 overflow-x-auto">
-                {hourlyData.map((hour, index) => (
-                  <div key={index} className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
-                    <div 
-                      className="w-3 bg-gradient-to-t from-accent to-accent/60 rounded-t-sm transition-all duration-300 hover:from-accent/80 hover:to-accent/40 cursor-pointer relative group"
-                      style={{ height: `${hour.height}%` }}
-                      title={`${hour.label}: ${formatTime(hour.minutes)} (${hour.sessions} sessions)`}
-                    >
-                      {/* Tooltip content - shown on hover */}
-                      <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-black/90 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                        {hour.label}: {formatTime(hour.minutes)}
-                      </div>
-                    </div>
-                    <div className="text-xs text-white/70 text-center transform -rotate-45 origin-center mt-2">
-                      {hour.shortLabel}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Hourly Summary */}
-              <div className="grid grid-cols-3 gap-3 text-xs">
-                <div className="bg-black/20 rounded-lg p-3">
-                  <div className="text-white/70">Total Today</div>
-                  <div className="text-white font-medium">
-                    {formatTime(hourlyData.reduce((sum, hour) => sum + hour.minutes, 0))}
-                  </div>
-                  <div className="text-white/50">
-                    {hourlyData.reduce((sum, hour) => sum + hour.sessions, 0)} sessions
-                  </div>
-                </div>
-                <div className="bg-black/20 rounded-lg p-3">
-                  <div className="text-white/70">Peak Hour</div>
-                  <div className="text-white font-medium">
-                    {(() => {
-                      const peakHour = hourlyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, hourlyData[0])
-                      return peakHour.minutes > 0 ? peakHour.label : 'N/A'
-                    })()}
-                  </div>
-                  <div className="text-white/50">
-                    {(() => {
-                      const peakHour = hourlyData.reduce((max, hour) => hour.minutes > max.minutes ? hour : max, hourlyData[0])
-                      return peakHour.minutes > 0 ? formatTime(peakHour.minutes) : '0m'
-                    })()}
-                  </div>
-                </div>
-                <div className="bg-black/20 rounded-lg p-3">
-                  <div className="text-white/70">Active Hours</div>
-                  <div className="text-white font-medium">
-                    {hourlyData.filter(hour => hour.minutes > 0).length}
-                  </div>
-                  <div className="text-white/50">
-                    of 24 hours
                   </div>
                 </div>
               </div>

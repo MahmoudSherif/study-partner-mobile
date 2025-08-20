@@ -191,6 +191,31 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
           if (!wasCompleted && isNowCompleted) {
             mobileFeedback.achievement()
             toast.success(`🎯 Goal completed: ${goal.title}!`)
+            
+            // Check for goal achievement milestone
+            const completedGoalsCount = goals.filter(g => g.isCompleted).length + 1 // +1 for this newly completed goal
+            const goalAchieverAchievement = achievements.find(a => a.id === 'goal-achiever')
+            
+            if (goalAchieverAchievement && !goalAchieverAchievement.unlocked && completedGoalsCount >= goalAchieverAchievement.requirement) {
+              const updatedAchievements = achievements.map(achievement => {
+                if (achievement.id === 'goal-achiever') {
+                  return {
+                    ...achievement,
+                    progress: completedGoalsCount,
+                    unlocked: true,
+                    unlockedAt: new Date()
+                  }
+                }
+                return achievement
+              })
+              
+              onUpdateAchievements(updatedAchievements)
+              mobileFeedback.achievement()
+              toast.success(`Achievement Unlocked: ${goalAchieverAchievement.title}!`, {
+                description: goalAchieverAchievement.description,
+                duration: 5000
+              })
+            }
           }
 
           return {
@@ -230,6 +255,33 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
     }
 
     setGoals(current => [...current, goal])
+    
+    // Trigger achievement check for goal creation
+    const updatedAchievements = achievements.map(achievement => {
+      if (achievement.id === 'goal-setter' && !achievement.unlocked) {
+        const newProgress = goals.length + 1 // +1 for the goal we just added
+        const unlocked = newProgress >= achievement.requirement
+        
+        if (unlocked) {
+          mobileFeedback.achievement()
+          toast.success(`Achievement Unlocked: ${achievement.title}!`, {
+            description: achievement.description,
+            duration: 5000
+          })
+        }
+        
+        return {
+          ...achievement,
+          progress: Math.min(newProgress, achievement.requirement),
+          unlocked,
+          unlockedAt: unlocked ? new Date() : achievement.unlockedAt
+        }
+      }
+      return achievement
+    })
+    
+    onUpdateAchievements(updatedAchievements)
+    
     setNewGoal({
       title: '',
       description: '',
@@ -259,12 +311,20 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
           <CardTitle className="text-white flex items-center gap-2">
             <Target size={20} />
             Current Goals
+            {goals.length > 0 && (
+              <Badge variant="secondary" className="bg-white/20 text-white ml-auto">
+                {goals.filter(g => g.isCompleted).length}/{goals.length} completed
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {activeGoals.length === 0 ? (
             <div className="text-center py-4">
               <p className="text-white/60 mb-3">No active goals yet</p>
+              <p className="text-xs text-white/50 mb-3">
+                Setting goals helps unlock achievements and track your progress!
+              </p>
               <Button 
                 onClick={() => setShowAddGoal(true)}
                 className="bg-accent/20 hover:bg-accent/30 text-accent border-accent/30"
@@ -314,6 +374,40 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
                 Add Goal
               </Button>
             </>
+          )}
+          
+          {/* Quick Goal Templates */}
+          {activeGoals.length === 0 && (
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <p className="text-xs text-white/50 mb-3">Quick Templates:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { title: 'Study 2 hours today', target: 120, category: 'daily' as const },
+                  { title: 'Focus for 1 hour', target: 60, category: 'daily' as const },
+                  { title: '10 hours this week', target: 600, category: 'weekly' as const },
+                  { title: 'Monthly reading goal', target: 1200, category: 'monthly' as const }
+                ].map((template, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setNewGoal({
+                        title: template.title,
+                        description: '',
+                        target: template.target,
+                        category: template.category,
+                        deadline: ''
+                      })
+                      setShowAddGoal(true)
+                    }}
+                    className="text-xs bg-white/5 hover:bg-white/10 text-white/80 border-white/20"
+                  >
+                    {template.title}
+                  </Button>
+                ))}
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -432,37 +526,69 @@ export function AchieveTab({ achievements, onUpdateAchievements }: AchieveTabPro
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <Trophy size={20} />
-            Recent Achievements
+            Achievement Progress
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3">
-            {achievements.slice(0, 3).map(achievement => (
-              <div
-                key={achievement.id}
-                className={`p-3 rounded-lg border transition-all ${
-                  achievement.unlocked
-                    ? 'bg-accent/20 border-accent/30'
-                    : 'bg-white/5 border-white/10'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="text-2xl">
-                    {achievement.unlocked ? <CheckCircle className="text-accent" size={24} /> : achievement.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className={`font-medium ${achievement.unlocked ? 'text-accent' : 'text-white'}`}>
-                      {achievement.title}
-                    </h4>
-                    <p className="text-sm text-white/60">{achievement.description}</p>
-                    <Progress 
-                      value={(achievement.progress / achievement.requirement) * 100}
-                      className="h-1 mt-2 bg-white/10"
-                    />
+            {achievements
+              .filter(achievement => achievement.category === 'goals' || achievement.category === 'focus' || !achievement.unlocked)
+              .slice(0, 4)
+              .map(achievement => (
+                <div
+                  key={achievement.id}
+                  className={`p-3 rounded-lg border transition-all ${
+                    achievement.unlocked
+                      ? 'bg-accent/20 border-accent/30'
+                      : 'bg-white/5 border-white/10'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">
+                      {achievement.unlocked ? <CheckCircle className="text-accent" size={24} /> : achievement.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-medium ${achievement.unlocked ? 'text-accent' : 'text-white'}`}>
+                        {achievement.title}
+                      </h4>
+                      <p className="text-sm text-white/60">{achievement.description}</p>
+                      {!achievement.unlocked && (
+                        <>
+                          <Progress 
+                            value={(achievement.progress / achievement.requirement) * 100}
+                            className="h-1 mt-2 bg-white/10"
+                          />
+                          <div className="text-xs text-white/60 mt-1">
+                            {achievement.progress} / {achievement.requirement}
+                            {achievement.category === 'goals' && ' goals'}
+                            {achievement.category === 'focus' && ' focus sessions'}
+                            {achievement.category === 'time' && ' minutes'}
+                          </div>
+                        </>
+                      )}
+                      {achievement.unlocked && achievement.unlockedAt && (
+                        <div className="text-xs text-white/60 mt-1">
+                          Unlocked {new Date(achievement.unlockedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
+              ))}
+          </div>
+          
+          {/* Goal Achievement Stats */}
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-accent">{goals.filter(g => g.isCompleted).length}</div>
+                <div className="text-xs text-white/60">Goals Completed</div>
               </div>
-            ))}
+              <div className="space-y-1">
+                <div className="text-2xl font-bold text-accent">{focusSessions.filter(fs => fs.completed).length}</div>
+                <div className="text-xs text-white/60">Focus Sessions</div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

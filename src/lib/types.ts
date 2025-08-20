@@ -26,6 +26,10 @@ export interface Achievement {
   unlockedAt?: Date
   requirement: number
   progress: number
+  category?: 'time' | 'sessions' | 'streaks' | 'focus' | 'goals' | 'tasks'
+  isGoalBased?: boolean
+  goalTarget?: number
+  goalDeadline?: Date
 }
 
 export interface UserStats {

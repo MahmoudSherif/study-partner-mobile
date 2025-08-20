@@ -8,7 +8,8 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     icon: '🎯',
     unlocked: false,
     requirement: 1,
-    progress: 0
+    progress: 0,
+    category: 'sessions'
   },
   {
     id: 'hour-milestone',
@@ -17,7 +18,8 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     icon: '⏰',
     unlocked: false,
     requirement: 60,
-    progress: 0
+    progress: 0,
+    category: 'time'
   },
   {
     id: 'week-warrior',
@@ -26,7 +28,8 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     icon: '🔥',
     unlocked: false,
     requirement: 7,
-    progress: 0
+    progress: 0,
+    category: 'streaks'
   },
   {
     id: 'focus-master',
@@ -35,7 +38,8 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     icon: '🎓',
     unlocked: false,
     requirement: 25,
-    progress: 0
+    progress: 0,
+    category: 'sessions'
   },
   {
     id: 'century-club',
@@ -44,7 +48,59 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
     icon: '💯',
     unlocked: false,
     requirement: 6000, // 100 hours in minutes
-    progress: 0
+    progress: 0,
+    category: 'time'
+  },
+  {
+    id: 'goal-setter',
+    title: 'Goal Setter',
+    description: 'Create your first goal',
+    icon: '🎯',
+    unlocked: false,
+    requirement: 1,
+    progress: 0,
+    category: 'goals'
+  },
+  {
+    id: 'goal-achiever',
+    title: 'Goal Achiever',
+    description: 'Complete 5 goals',
+    icon: '🏆',
+    unlocked: false,
+    requirement: 5,
+    progress: 0,
+    category: 'goals'
+  },
+  {
+    id: 'focus-champion',
+    title: 'Focus Champion',
+    description: 'Complete 10 focus sessions',
+    icon: '🧠',
+    unlocked: false,
+    requirement: 10,
+    progress: 0,
+    category: 'focus'
+  },
+  {
+    id: 'marathon-runner',
+    title: 'Marathon Runner',
+    description: 'Study for 5 hours in one day',
+    icon: '🏃‍♂️',
+    unlocked: false,
+    requirement: 300, // 5 hours in minutes
+    progress: 0,
+    category: 'time',
+    isGoalBased: true
+  },
+  {
+    id: 'consistency-king',
+    title: 'Consistency King',
+    description: 'Maintain a 30-day study streak',
+    icon: '👑',
+    unlocked: false,
+    requirement: 30,
+    progress: 0,
+    category: 'streaks'
   }
 ]
 

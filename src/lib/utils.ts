@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification, FocusSession } from './types'
+import { Achievement, Subject, StudySession, UserStats, SubjectProgress, TargetNotification, FocusSession, Goal } from './types'
 import { INITIAL_ACHIEVEMENTS } from './constants'
 import { calculateStudyStreak } from './chartUtils'
 
@@ -47,26 +47,77 @@ export function updateAchievements(
   currentAchievements: Achievement[],
   stats: UserStats,
   sessions: StudySession[],
-  focusSessions: FocusSession[] = []
+  focusSessions: FocusSession[] = [],
+  goals: Goal[] = []
 ): Achievement[] {
   return currentAchievements.map(achievement => {
     let progress = 0
     
-    switch (achievement.id) {
-      case 'first-session':
-        progress = stats.sessionsCompleted
+    switch (achievement.category) {
+      case 'sessions':
+        switch (achievement.id) {
+          case 'first-session':
+          case 'focus-master':
+            progress = stats.sessionsCompleted
+            break
+        }
         break
-      case 'hour-milestone':
-        progress = stats.totalStudyTime
+        
+      case 'time':
+        switch (achievement.id) {
+          case 'hour-milestone':
+          case 'century-club':
+            progress = stats.totalStudyTime
+            break
+          case 'marathon-runner':
+            // Check for 5 hours (300 minutes) in a single day
+            progress = getMaxDailyStudyTime(sessions, focusSessions)
+            break
+        }
         break
-      case 'week-warrior':
+        
+      case 'streaks':
         progress = stats.streak
         break
-      case 'focus-master':
-        progress = stats.sessionsCompleted
+        
+      case 'focus':
+        switch (achievement.id) {
+          case 'focus-champion':
+            progress = focusSessions.filter(fs => fs.completed).length
+            break
+        }
         break
-      case 'century-club':
-        progress = stats.totalStudyTime
+        
+      case 'goals':
+        switch (achievement.id) {
+          case 'goal-setter':
+            progress = goals.length
+            break
+          case 'goal-achiever':
+            progress = goals.filter(goal => goal.isCompleted).length
+            break
+        }
+        break
+        
+      default:
+        // Fallback for old achievements without categories
+        switch (achievement.id) {
+          case 'first-session':
+            progress = stats.sessionsCompleted
+            break
+          case 'hour-milestone':
+            progress = stats.totalStudyTime
+            break
+          case 'week-warrior':
+            progress = stats.streak
+            break
+          case 'focus-master':
+            progress = stats.sessionsCompleted
+            break
+          case 'century-club':
+            progress = stats.totalStudyTime
+            break
+        }
         break
     }
     
@@ -79,6 +130,26 @@ export function updateAchievements(
       unlockedAt: unlocked && !achievement.unlocked ? new Date() : achievement.unlockedAt
     }
   })
+}
+
+function getMaxDailyStudyTime(sessions: StudySession[], focusSessions: FocusSession[]): number {
+  const dailyTotals = new Map<string, number>()
+  
+  // Process regular study sessions
+  sessions.filter(s => s.completed).forEach(session => {
+    const dateKey = new Date(session.startTime).toDateString()
+    const current = dailyTotals.get(dateKey) || 0
+    dailyTotals.set(dateKey, current + session.duration)
+  })
+  
+  // Process focus sessions
+  focusSessions.filter(fs => fs.completed).forEach(session => {
+    const dateKey = new Date(session.startTime).toDateString()
+    const current = dailyTotals.get(dateKey) || 0
+    dailyTotals.set(dateKey, current + session.duration)
+  })
+  
+  return Math.max(...Array.from(dailyTotals.values()), 0)
 }
 
 export function formatTime(minutes: number): string {

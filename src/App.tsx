@@ -317,7 +317,7 @@ function AppContent() {
 
   useEffect(() => {
     try {
-      const updatedAchievements = updateAchievements(achievements, stats, sessions, focusSessions)
+      const updatedAchievements = updateAchievements(achievements, stats, sessions, focusSessions, goals)
       
       // Check for newly unlocked achievements
       const newlyUnlocked = updatedAchievements.filter((achievement, index) => 
@@ -342,7 +342,7 @@ function AppContent() {
       console.error('Error updating achievements:', error)
       // Don't show user error for achievements update
     }
-  }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak, focusSessions.length])
+  }, [stats.totalStudyTime, stats.sessionsCompleted, stats.streak, focusSessions.length, goals.length, goals.filter(g => g.isCompleted).length])
 
   const handleAddSubject = (subjectData: Omit<Subject, 'id'>) => {
     const newSubject: Subject = {
